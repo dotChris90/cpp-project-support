@@ -7,7 +7,7 @@ export class VSCodeCenter implements IMsgCenter {
         this.terminal = vscode.window.createOutputChannel("CPS");
     }
     writeOut(text: string): void {
-        this.terminal.append(text);
+        this.terminal.append(text + "\n");
     };
     writeErr(text: string): void {
         this.terminal.append(text);

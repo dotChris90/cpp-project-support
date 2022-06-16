@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { IMsgCenter } from './IMsgCenter';
 import { execSync } from 'child_process';
 
@@ -7,11 +7,20 @@ export class Executor {
   constructor(log: IMsgCenter) {
     this.log = log;
   }
+  public execSync(command : string, args : string[] ) {
+    return spawnSync(command,args);
+  }
   public execWithResult(command: string, args: string[] = [""], workingDir: string = "", options: any = {}) : Promise<string[]> {
     workingDir = workingDir === "" ? process.cwd() : workingDir;
     options['cwd'] = workingDir;
-    let out = execSync(command,options);
-    let bufferSplitted = out.toString().split("\n")
+    let out = "";
+    if (args === [""]) {
+      out = execSync(command,options).toString();
+    }
+    else {
+      out = spawnSync(command,args,options).stdout.toString();
+    }
+    let bufferSplitted = out.split("\n")
       .filter(text => text !== '');
     let bufferPromise: Promise<string[]> = new Promise((resolve, reject) => resolve(bufferSplitted));
     return bufferPromise;
