@@ -140,7 +140,7 @@ export class CppPrjSup {
     ) {
         this.log.clear();
         fse.mkdirpSync(this.conanBuildDir);
-        fse.rmdirSync(this.conanBuildDir);
+        fse.removeSync(this.conanBuildDir);
         fse.mkdirpSync(this.conanBuildDir);
         await this.conan.installDeps(profile,"default",buildType,this.buildDir,path.join(".."));
         await this.conan.installDeps(profile,"default",buildType,this.buildDir,path.join("..","test_package"));
@@ -155,7 +155,12 @@ export class CppPrjSup {
         pkgName : string, 
         version : string, 
         workDir : string) {
-            this.conan.getRequirements(pkgName,version,workDir);
+            return this.conan.getRequirements(pkgName,version,workDir);
+    }
+
+    public getRequirementsOfProject() {
+        let workDir = this.prjRoot;
+        return this.conan.getProjectRequirementsSync(workDir);
     }
 
     public async createPkg() {

@@ -25,6 +25,20 @@ export class Executor {
     let bufferPromise: Promise<string[]> = new Promise((resolve, reject) => resolve(bufferSplitted));
     return bufferPromise;
   }
+  public execWithResultSync(command: string, args: string[] = [""], workingDir: string = "", options: any = {}) : string[] {
+    workingDir = workingDir === "" ? process.cwd() : workingDir;
+    options['cwd'] = workingDir;
+    let out = "";
+    if (args === [""]) {
+      out = execSync(command,options).toString();
+    }
+    else {
+      out = spawnSync(command,args,options).stdout.toString();
+    }
+    let bufferSplitted = out.split("\n")
+      .filter(text => text !== '');
+    return bufferSplitted;
+  }
   public execPromise(command: string, args: string[], workingDir: string = "", options: any = {}) : Promise<any> {
     workingDir = workingDir === "" ? process.cwd() : workingDir;
     return new Promise((resolve, reject) => {

@@ -22,6 +22,23 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cps-center",
+          "title": "CPS - Command Center",
+          "icon": "media/Cpp.svg"
+        }
+      ]
+    },
+    "views": {
+      "cps-center" : [
+        {
+          "id": "buildAndPack",
+          "name": "Build workflow"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "cps.helloWorld",
@@ -58,8 +75,24 @@
       {
         "command": "cps.create",
         "title": "CPS - Create Package and Test"
+      },
+      {
+        "command": "cps.center.installdefault",
+        "title": "Install default Release"
       }
-    ]
+    ],
+    "menus" : { 
+      "view/item/context": [
+				{
+					"command": "cps.center.installdefault",
+					"when": "view == buildAndPack && viewItem == install"
+				},
+        {
+					"command": "cps.importPkg",
+					"when": "view == buildAndPack && viewItem == install"
+				}
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

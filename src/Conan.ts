@@ -122,11 +122,11 @@ export class Conan {
         workDir : string) {
         let cmd = "conan";
         let args = [
-            "info",
-            `${pkgName}/${version}@_/_`,
-            "-n",
-            "requires"
-        ];
+                "info",
+                `${pkgName}/${version}@_/_`,
+                "-n",
+                "requires"
+            ];
         let out = await this.exec.execWithResult(cmd,args,workDir);   
         let pkgIdx = out.indexOf(`${pkgName}/${version}`) + 2; 
         let packages = [];
@@ -139,6 +139,42 @@ export class Conan {
             pkgIdx++;
         }                        
         return packages;
+    }
+    public getProjectRequirementsSync(projDir : string) {
+
+        let pkgName = this.getNameSync(".",projDir);
+        let version = this.getVersionSync(".",projDir);
+        let cmd = "conan";
+        let args = [
+                "info",
+                ".",
+                "-n",
+                "requires"
+            ];
+        let out = this.exec.execWithResultSync(cmd,args,projDir);   
+        let pkgIdx = out.indexOf(`conanfile.py (${pkgName}/${version})`) + 2; 
+        let packages = [];
+        while (pkgIdx < out.length) {
+            packages.push(out[pkgIdx].trim().trimEnd());
+            pkgIdx++;
+        }                        
+        return packages;
+    }
+    public getNameSync(
+        conanFile : string,
+        workDir : string
+    ) {
+        let cmd = "conan";
+        let args = [
+            "inspect",
+            "-a",
+            "name",
+            `${conanFile}`,
+        ];
+        let name_ = this.exec.execWithResultSync(cmd, args, workDir);
+        let name = name_[0].substring(6);
+
+        return `${name}`;
     }
     public async getName(
         conanFile : string,
@@ -157,6 +193,21 @@ export class Conan {
         return `${name}`;
     }
 
+    public getVersionSync(
+        conanFile : string,
+        workDir : string
+    ) {
+        let cmd = "conan";
+        let args = [
+            "inspect",
+            "-a",
+            "version",
+            `${conanFile}`,
+        ];
+        let version_ = this.exec.execWithResultSync(cmd, args, workDir);
+        let version = version_[0].substring(9);
+        return `${version}`;
+    }
     public async getVersion(
         conanFile : string,
         workDir : string

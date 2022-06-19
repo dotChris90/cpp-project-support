@@ -6,28 +6,23 @@ import * as vscode from 'vscode';
 import {CppPrjSup} from './CppPrjSup';
 import {VSCodeCenter} from './VSCodeCenter';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+import { TreeDataProvider } from './CPSCenter/TreeDataProvider';
+
+function getWorkSpace() : string {
+	return (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
+	? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
+}
+
+function getNewCPSInstance(context : vscode.ExtensionContext) : CppPrjSup {
+	const workspaceRoot = getWorkSpace();
+	let codePath = path.join(context.extensionUri.path,"out","C++Code");
+	return new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot!);
+}
+
 export function activate(context: vscode.ExtensionContext) {
 
-	const workspaceRoot = (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
-		? vscode.workspace.workspaceFolders[0].uri.fsPath : undefined;
-	if (!workspaceRoot) {
-		return;
-	};
-
-	let codePath = path.join(context.extensionUri.path,"out","C++Code");
-	vscode.window.showInformationMessage(codePath);
+	let cps = getNewCPSInstance(context);
 	
-	let cps = new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot);	
-	
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "cps" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('cps.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
@@ -55,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
 			prompt: 'Enter name/version for package',
 			placeHolder: 'iceoryx/2.0.0'
 		}).then(value => {
-			cps.getRequirements("iceoryx","2.0.0",workspaceRoot).then(() => {
+			cps.getRequirements("iceoryx","2.0.0",getWorkSpace()).then(() => {
 				vscode.window.showInformationMessage('requires');
 			});
 		});
@@ -113,7 +108,9 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(disposable);
 
-
+	let tp = new TreeDataProvider(cps);
+	vscode.window.registerTreeDataProvider('buildAndPack',tp );
+	vscode.commands.registerCommand("cps.center.installdefault",() => tp.installDefaultRelease());
 }
 
 // this method is called when your extension is deactivated
