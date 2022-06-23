@@ -18,7 +18,8 @@
     "onCommand:cps.req",
     "onCommand:cps.cppcheck",
     "onCommand:cps.deploy",
-    "onCommand:cps.create"
+    "onCommand:cps.create",
+    "onView:cps-center"
   ],
   "main": "./out/extension.js",
   "contributes": {

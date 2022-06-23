@@ -3,5 +3,7 @@ export interface IMsgCenter {
     writeErr(text: string): void;
     writeWarn(text : string) : void;
     showHint(text : string) : void;
+    askInput(question : string, placeHolder : string) : Thenable<string | undefined>;
+    pickFromList(question: string, list : string[]) : Thenable<string | undefined>;
     clear(): void;
 }

@@ -103,17 +103,24 @@ export class CppPrjSup {
         }
     }
 
-    public newPrj(
-        name : string,
-        version : string ) {
-        return this.conan.createNewProject(name,version,"default",this.prjRoot);
+    public newPrj() {
+        this.log.askInput("Enter name/version for package","default/0.1.0").then(packageName => {
+            let name = packageName?.split("/")[0]!;
+            let version = packageName?.split("/")[1]!;
+            return this.conan.createNewProject(name,version,"default",this.prjRoot);
+        }).then( () => {
+            this.log.showHint("Project created.");
+        }); 
     }
 
     public async importPackages(
-        profile : string = "default"   
+        profile : string = ""   
     ) {
-
         this.log.clear();
+        if (profile === "") {
+            let profile_ = await this.log.askInput("Choose a profile","default");
+            profile = profile_!;
+        }
         fse.mkdirpSync(this.pkgDir);
         fse.rmdirSync(this.pkgDir);
         fse.mkdirpSync(this.pkgDir);
@@ -132,23 +139,35 @@ export class CppPrjSup {
                         fse.copySync(includeIdx, path.join(this.pkgDir, "include"));
                     }
                 });
+        this.log.showHint('Imported depending packages.');
     }
 
     public async installDeps(
-        profile : string = "default",
-        buildType : string = "Release"
+        profile : string = "",
+        buildType : string = ""
     ) {
         this.log.clear();
+        if (profile === "") {
+            let profiles = await this.conan.getProfiles();
+            let profile_ = await this.log.pickFromList("Choose Profile",profiles);
+            profile = profile_!;
+        }
+        if (buildType === "") {
+            let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+            buildType = buildType_!;
+        }
         fse.mkdirpSync(this.conanBuildDir);
         fse.removeSync(this.conanBuildDir);
         fse.mkdirpSync(this.conanBuildDir);
         await this.conan.installDeps(profile,"default",buildType,this.buildDir,path.join(".."));
         await this.conan.installDeps(profile,"default",buildType,this.buildDir,path.join("..","test_package"));
+        this.log.showHint('Install depending packages.');
     }
 
     public async build() {
         this.log.clear();
         await this.conan.buildProject(path.join(".."),this.buildDir);
+        this.log.showHint('build finish.');
     }
 
     public async getRequirements(
@@ -172,7 +191,13 @@ export class CppPrjSup {
     public async generateCppCheckReport() {
         this.log.clear();
         await this.cppcheck.generateReport(this.srcRoot,this.cppReportFile,this.buildDir);
-        return this.cppReportFile;
+        let hasError = await this.sourceHasError();
+        if (hasError) {
+            this.log.showHint(`oh oh - your project has an error - check ${this.cppReportFile}`);
+        }
+        else {
+            this.log.showHint('All good!');
+        }
     }
 
     public sourceHasError() {
@@ -192,7 +217,8 @@ export class CppPrjSup {
         profile : string = "default",
         buildType : string = "Release"
     ) {
-        return this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile);
+        this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile);
+        this.log.showHint(`Created Package`);
     }
 
     public async deployProject(
@@ -208,7 +234,10 @@ export class CppPrjSup {
             fse.removeSync(packageDir);
         }
         this.conan.deployTool(packageName,packageVersion,this.pkgDir);   
+        this.log.showHint(`Package deployed at ${this.pkgDir}`);
+    }
 
-        return packageDir;
+    public getCMakeTargets() {
+        return this.cmake.getTargets(path.join(this.prjRoot,"CMakeLists.txt"));
     }
 }

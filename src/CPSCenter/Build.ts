@@ -11,6 +11,9 @@ export class Build extends Composite {
     public getChildren(): Leaf[] {
         let leafs : Leaf[] = [];
         leafs.push(new Leaf("all"));
+
+        let abc = this.cps.getCMakeTargets();
+
         return leafs;
     }
 }

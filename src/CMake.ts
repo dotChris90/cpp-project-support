@@ -24,24 +24,26 @@ export class CMake {
             });
         return opts;
     }
-    public getTargets(
+    public async getTargets(
         cmakeFile: string) {
-        let buildDir = path.dirname(cmakeFile).concat('.build');
+        let cmakeDir = path.dirname(cmakeFile);
+        let buildDir = path.join(cmakeDir,".cps","build")
+        if (fse.pathExistsSync(buildDir)) {
+            fse.removeSync(buildDir);
+        }
         fse.mkdirpSync(buildDir);
-        let opts = this.exec.execPromise(
-            'cmake', 
-            ['..'],
-            buildDir).then(x => {
-                this.exec.execWithResult(
-                    'cmake',
-                    ['--build',
-                     '.',
+        let cmd = "cmake";
+        let args = [
+            `${cmakeFile}`
+        ];
+        let _ = this.exec.execWithResultSync(cmd, args, buildDir);
+        args = ['--build',
+                     `${buildDir}`,
                     '--target',
                     'help'
-                    ],
-                    buildDir
-                    );
-            });
-        return opts;    
+                ];
+        
+        let targets = this.exec.execWithResultSync(cmd, args, buildDir);  
+        return targets; 
     }
 }

@@ -22,4 +22,16 @@ export class VSCodeCenter implements IMsgCenter {
     showHint(text: string): void {
         vscode.window.showInformationMessage(text);   
     }
+    askInput(question: string, placeHolder: string) {
+        return vscode.window.showInputBox({
+			value: placeHolder,
+			prompt: question,
+			placeHolder: placeHolder
+		});
+    }
+    pickFromList(question: string, list: string[]): Thenable<string | undefined> {
+		return vscode.window.showQuickPick(list, {
+			placeHolder: question
+		});
+    }
 }
