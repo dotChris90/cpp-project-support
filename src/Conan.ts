@@ -28,13 +28,13 @@ export class Conan {
                                 .then(x => ["default"].concat(x));
         return profiles;
     }
-    public getPackageTree(conanfile: string, dstFile: string) {
+    public geneneratePackageTree(conanfile: string, dstFile: string) {
         let cmd = "conan";
         let args = [
             "info",
             conanfile,
             "-g",
-            `${dstFile}.html`
+            `${dstFile}.dot`
         ];
         return this.exec.execPromise(cmd, args);
     }

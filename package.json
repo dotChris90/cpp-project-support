@@ -17,6 +17,8 @@
     "onCommand:cps.build",
     "onCommand:cps.req",
     "onCommand:cps.cppcheck",
+    "onCommand:cps.packageTree",
+    "onCommand:cps.targetTree",
     "onCommand:cps.deploy",
     "onCommand:cps.create",
     "onView:cps-center"
@@ -60,6 +62,14 @@
       {
         "command": "cps.build",
         "title": "CPS - Build project"
+      },
+      {
+        "command": "cps.packageTree",
+        "title": "CPS - Generate Package Tree"
+      },
+      {
+        "command": "cps.targetTree",
+        "title": "CPS - Generate Target Tree"
       },
       {
         "command": "cps.req",

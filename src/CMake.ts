@@ -24,6 +24,49 @@ export class CMake {
             });
         return opts;
     }
+    public async generateBuildFiles(
+        cmakeFiles : string,
+        toolchainFile : string,
+        buildType : string,
+        workDir : string
+    ) {
+        let cmd = "cmake";
+        let args = [
+            `--toolchain=${toolchainFile}`,
+            `-DCMAKE_BUILD_TYPE=${buildType}`,
+            `${path.dirname(cmakeFiles)}`
+        ];
+        return this.exec.execPromise(cmd, args,workDir);
+        // cmake --toolchain=/tmp/abc/build/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
+    }
+    public async generateDot(
+        workDir : string,
+        cmakeFiles : string,
+        dstDotFile : string
+    ){
+        let cmd = "cmake";
+        let args = [
+            `-S`,
+            `${path.dirname(cmakeFiles)}`,
+            `--graphviz=${dstDotFile}`
+        ];
+        return this.exec.execPromise(cmd, args,workDir);
+        // cmake -S .. --graphviz=graph.dot
+    }
+    public async generateSvgFromDot(
+        dotFile : string, 
+        dstSvgFile : string
+    ) {
+        let cmd = "dot";
+        let args = [
+            `-Tsvg`,
+            `-o`,
+            `${dstSvgFile}`,
+            `${dotFile}`
+        ];
+        return this.exec.execPromise(cmd, args);
+        // dot -Tsvg -o graph.svg ./graph.dot
+    }
     public async getTargets(
         cmakeFile: string) {
         let cmakeDir = path.dirname(cmakeFile);

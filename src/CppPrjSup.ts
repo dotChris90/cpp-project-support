@@ -14,8 +14,12 @@ export class CppPrjSup {
     private cmake : CMake;
     private cppcheck : CppCheck;
     private cppReportFile : string;
+    private dotFile : string;
+    private svgFile : string;
+    private packageTreeFile : string;
     private prjRoot : string;
     private conanFile : string;
+    private cmakeFile : string;
     private srcRoot : string;
     private incDir : string;
     private testDir : string;
@@ -28,6 +32,7 @@ export class CppPrjSup {
     private doxygenPath : string;
     private cmakePath : string;
     private cppcheckPath : string;
+    private toolchainFile : string;
 
     constructor(
         msg: IMsgCenter,
@@ -39,14 +44,19 @@ export class CppPrjSup {
 
         this.prjRoot = prjRoot;
         this.conanFile = path.join(this.prjRoot,"conanfile.py");
+        this.cmakeFile = path.join(this.prjRoot,"CMakeLists.txt");
         this.srcRoot = path.join(this.prjRoot,"src");
         this.buildDir = path.join(prjRoot,".cps");
+        this.dotFile = path.join(this.buildDir,"target.dot");
+        this.svgFile = path.join(this.buildDir,"target.svg");
         this.conanBuildDir = path.join(this.prjRoot,"build");
+        this.toolchainFile = path.join(this.conanBuildDir,path.join("generators","conan_toolchain.cmake"));
         this.toolDir = path.join(this.buildDir,"tools");
         this.cppReportFile = path.join(this.toolDir,"cpp.report");
         this.pkgDir = path.join(this.buildDir,"pkgs");
         this.incDir = path.join(this.buildDir,"include");
         this.testDir = path.join(prjRoot,"test_package");
+        this.packageTreeFile = path.join(this.buildDir,"tree");
         this.log = msg;
         this.doxygenPath = path.join(this.toolDir,"doxygen");
         this.cmakePath = path.join(this.toolDir,"cmake");
@@ -122,7 +132,7 @@ export class CppPrjSup {
             profile = profile_!;
         }
         fse.mkdirpSync(this.pkgDir);
-        fse.rmdirSync(this.pkgDir);
+        fse.removeSync(this.pkgDir);
         fse.mkdirpSync(this.pkgDir);
         await this.conan.deployDeps(profile,"default","Release",this.pkgDir,path.join("..",".."));
         await this.conan.deployDeps(profile,"default","Release",this.pkgDir,path.join("..","..","test_package"));
@@ -159,9 +169,25 @@ export class CppPrjSup {
         fse.mkdirpSync(this.conanBuildDir);
         fse.removeSync(this.conanBuildDir);
         fse.mkdirpSync(this.conanBuildDir);
-        await this.conan.installDeps(profile,"default",buildType,this.buildDir,path.join(".."));
-        await this.conan.installDeps(profile,"default",buildType,this.buildDir,path.join("..","test_package"));
+        await this.conan.installDeps(profile,"default",buildType,this.conanBuildDir,path.join(".."));
+        await this.conan.installDeps(profile,"default",buildType,this.conanBuildDir,path.join("..","test_package"));
         this.log.showHint('Install depending packages.');
+    }
+
+    public async generatePackageTree() {
+        this.log.clear();
+        await this.conan.geneneratePackageTree(this.conanFile,this.packageTreeFile);
+        await this.cmake.generateSvgFromDot(`${this.packageTreeFile}.dot`,`${this.packageTreeFile}.svg`);
+        this.log.showHint(`Look - ${this.packageTreeFile}.html`);
+    }
+
+    public async generateTargetTree() {
+        this.log.clear();
+        await this.installDeps("default","Release");
+        await this.cmake.generateBuildFiles(this.cmakeFile,this.toolchainFile,"Release",this.conanBuildDir);
+        await this.cmake.generateDot(this.conanBuildDir,this.cmakeFile,this.dotFile);
+        await this.cmake.generateSvgFromDot(this.dotFile,this.svgFile);
+        this.log.showHint(`Look - ${this.svgFile}`);
     }
 
     public async build() {

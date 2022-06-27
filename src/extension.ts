@@ -31,18 +31,21 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.deploy', 		() => { cps.deployProject();  });
 	vscode.commands.registerCommand('cps.create', 		() => { cps.createPackageAndTest();  });
 	vscode.commands.registerCommand('cps.cppcheck', 	() => { cps.generateCppCheckReport();  });
+	vscode.commands.registerCommand('cps.packageTree', 	() => { cps.generatePackageTree();  });
+	vscode.commands.registerCommand('cps.targetTree', 	() => { cps.generateTargetTree();  });
 	
-	vscode.commands.registerCommand('cps.req', () => {
-		vscode.window.showInputBox({
-			value: 'iceoryx(2.0.0',
-			prompt: 'Enter name/version for package',
-			placeHolder: 'iceoryx/2.0.0'
-		}).then(value => {
-			cps.getRequirements("iceoryx","2.0.0",getWorkSpace()).then(() => {
-				vscode.window.showInformationMessage('requires');
-			});
-		});
-	});
+
+	//vscode.commands.registerCommand('cps.req', () => {
+	//	vscode.window.showInputBox({
+	//		value: 'iceoryx(2.0.0',
+	//		prompt: 'Enter name/version for package',
+	//		placeHolder: 'iceoryx/2.0.0'
+	//	}).then(value => {
+	//		cps.getRequirements("iceoryx","2.0.0",getWorkSpace()).then(() => {
+	//			vscode.window.showInformationMessage('requires');
+	//		});
+	//	});
+	//});
 	
 	//let tp = new TreeDataProvider(cps);
 	//vscode.window.registerTreeDataProvider('buildAndPack',tp );
