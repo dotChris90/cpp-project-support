@@ -2,10 +2,11 @@
 {
     "C_Cpp.default.includePath": [
         "build/include/**",
+        ".cps/"
         "src/**"
     ],
     "C_Cpp.clang_format_style": "file",
-    "C_Cpp.codeAnalysis.clangTidy.headerFilter": "build/include/**;src/**",
+    "C_Cpp.codeAnalysis.clangTidy.headerFilter": "build/include/**;src/**;.cps/pkgs/include/**",
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "C_Cpp.codeAnalysis.exclude": {
         "build/**": true,
