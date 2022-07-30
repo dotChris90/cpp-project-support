@@ -8,6 +8,7 @@ import {Dot} from './Dot';
 import {IMsgCenter} from './IMsgCenter';
 import {Executor} from './Executor';
 import {CppCheck} from './CppCheck';
+import { join } from 'path';
 
 export class CppPrjSup {
 
@@ -24,6 +25,7 @@ export class CppPrjSup {
     private srcRoot : string;
     private incDir : string;
     private testDir : string;
+    private testBuildDir : string;
     private buildDir : string;
     private toolDir : string;
     private pkgDir : string;
@@ -58,6 +60,7 @@ export class CppPrjSup {
         this.pkgDir = path.join(this.buildDir,"pkgs");
         this.incDir = path.join(this.buildDir,"include");
         this.testDir = path.join(prjRoot,"test_package");
+        this.testBuildDir = path.join(this.testDir,"build");
         this.packageTreeFile = path.join(this.buildDir,"tree");
         this.log = msg;
         this.doxygenPath = path.join(this.toolDir,"doxygen");
@@ -246,9 +249,24 @@ export class CppPrjSup {
 
     public createPackageAndTest(
         profile : string = "default",
-        buildType : string = "Release"
+        buildType : string = "Debug"
     ) {
-        this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile);
+        fse.removeSync(this.testBuildDir);
+        this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile).then( () => {
+            let testBin = path.join(
+                this.testBuildDir,
+                fse.readdirSync(this.testBuildDir)[0],
+                "bin",
+                "pkg_test"
+            );
+            if (fse.existsSync(testBin)) {
+                fse.linkSync(
+                    testBin,
+                    path.join(this.testBuildDir, "pkg_test")
+                );
+            }
+        }
+        );
         this.log.showHint(`Created Package`);
     }
 
