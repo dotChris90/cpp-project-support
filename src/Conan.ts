@@ -22,11 +22,13 @@ export class Conan {
         return this.exec.execPromise(cmd, args, workDir);
     }
     public getProfiles() {
-        let cmd = "conan profile list";
-        let profiles = this.exec.execWithResult(cmd)
-                                .then(x => x.filter(text => text !== 'default'))
-                                .then(x => ["default"].concat(x));
-        return profiles;
+        let cmd = "conan";
+        let args = [
+            "profile",
+            `list`,
+        ];
+        return this.exec.execWithResult(cmd, args).then(x => x.filter(text => text !== 'default'))
+                                                  .then(x => ["default"].concat(x));
     }
     public geneneratePackageTree(conanfile: string, dstFile: string) {
         let cmd = "conan";

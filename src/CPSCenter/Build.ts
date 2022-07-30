@@ -12,7 +12,7 @@ export class Build extends Composite {
         let leafs : Leaf[] = [];
         leafs.push(new Leaf("all"));
 
-        let abc = this.cps.getCMakeTargets();
+        //let abc = this.cps.getCMakeTargets();
 
         return leafs;
     }

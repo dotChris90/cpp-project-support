@@ -4,6 +4,7 @@ import * as path from 'path';
 
 import {Conan} from './Conan';
 import {CMake} from './CMake';
+import {Dot} from './Dot';
 import {IMsgCenter} from './IMsgCenter';
 import {Executor} from './Executor';
 import {CppCheck} from './CppCheck';
@@ -33,6 +34,7 @@ export class CppPrjSup {
     private cmakePath : string;
     private cppcheckPath : string;
     private toolchainFile : string;
+    private dot : Dot;
 
     constructor(
         msg: IMsgCenter,
@@ -67,6 +69,7 @@ export class CppPrjSup {
         this.conan = new Conan(exec);
         this.cmake = new CMake(exec);
         this.cppcheck = new CppCheck(exec);
+        this.dot = new Dot(exec);
 
         fse.mkdirpSync(this.toolDir);
         this.installCmakeIfNotPresent();
@@ -131,8 +134,9 @@ export class CppPrjSup {
             let profile_ = await this.log.askInput("Choose a profile","default");
             profile = profile_!;
         }
-        fse.mkdirpSync(this.pkgDir);
-        fse.removeSync(this.pkgDir);
+        // ToDo : Check
+        //fse.mkdirpSync(this.pkgDir);
+        //fse.removeSync(this.pkgDir);
         fse.mkdirpSync(this.pkgDir);
         await this.conan.deployDeps(profile,"default","Release",this.pkgDir,path.join("..",".."));
         await this.conan.deployDeps(profile,"default","Release",this.pkgDir,path.join("..","..","test_package"));
@@ -166,8 +170,9 @@ export class CppPrjSup {
             let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
             buildType = buildType_!;
         }
-        fse.mkdirpSync(this.conanBuildDir);
-        fse.removeSync(this.conanBuildDir);
+        // ToDo : Check
+        //fse.mkdirpSync(this.conanBuildDir);
+        //fse.removeSync(this.conanBuildDir);
         fse.mkdirpSync(this.conanBuildDir);
         await this.conan.installDeps(profile,"default",buildType,this.conanBuildDir,path.join(".."));
         await this.conan.installDeps(profile,"default",buildType,this.conanBuildDir,path.join("..","test_package"));
@@ -177,7 +182,7 @@ export class CppPrjSup {
     public async generatePackageTree() {
         this.log.clear();
         await this.conan.geneneratePackageTree(this.conanFile,this.packageTreeFile);
-        await this.cmake.generateSvgFromDot(`${this.packageTreeFile}.dot`,`${this.packageTreeFile}.svg`);
+        await this.dot.generateSvgFromDot(`${this.packageTreeFile}.dot`,`${this.packageTreeFile}.svg`);
         this.log.showHint(`Look - ${this.packageTreeFile}.html`);
     }
 
@@ -186,13 +191,13 @@ export class CppPrjSup {
         await this.installDeps("default","Release");
         await this.cmake.generateBuildFiles(this.cmakeFile,this.toolchainFile,"Release",this.conanBuildDir);
         await this.cmake.generateDot(this.conanBuildDir,this.cmakeFile,this.dotFile);
-        await this.cmake.generateSvgFromDot(this.dotFile,this.svgFile);
+        await this.dot.generateSvgFromDot(this.dotFile,this.svgFile);
         this.log.showHint(`Look - ${this.svgFile}`);
     }
 
     public async build() {
         this.log.clear();
-        await this.conan.buildProject(path.join(".."),this.buildDir);
+        await this.conan.buildProject(path.join(".."),this.conanBuildDir);
         this.log.showHint('build finish.');
     }
 
@@ -247,6 +252,12 @@ export class CppPrjSup {
         this.log.showHint(`Created Package`);
     }
 
+    public clean(
+
+    ) {
+        fse.removeSync(this.conanBuildDir);
+    }
+
     public async deployProject(
         profile : string = "default",
         buildType : string = "Release"
@@ -261,9 +272,5 @@ export class CppPrjSup {
         }
         this.conan.deployTool(packageName,packageVersion,this.pkgDir);   
         this.log.showHint(`Package deployed at ${this.pkgDir}`);
-    }
-
-    public getCMakeTargets() {
-        return this.cmake.getTargets(path.join(this.prjRoot,"CMakeLists.txt"));
     }
 }

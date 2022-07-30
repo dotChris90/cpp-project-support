@@ -21,6 +21,7 @@
     "onCommand:cps.targetTree",
     "onCommand:cps.deploy",
     "onCommand:cps.create",
+    "onCommand:cps.clean",
     "onView:cps-center"
   ],
   "main": "./out/extension.js",
@@ -64,6 +65,10 @@
         "title": "CPS - Build project"
       },
       {
+        "command": "cps.installPick",
+        "title" : "CPS - Install packages with profile"
+      },
+      {
         "command": "cps.packageTree",
         "title": "CPS - Generate Package Tree"
       },
@@ -74,6 +79,10 @@
       {
         "command": "cps.req",
         "title": "CPS - requires"
+      },
+      {
+        "command": "cps.clean",
+        "title": "CPS - Clean build dir"
       },
       {
         "command": "cps.cppcheck",
