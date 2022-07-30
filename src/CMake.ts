@@ -53,40 +53,5 @@ export class CMake {
         return this.exec.execPromise(cmd, args,workDir);
         // cmake -S .. --graphviz=graph.dot
     }
-    public async generateSvgFromDot(
-        dotFile : string, 
-        dstSvgFile : string
-    ) {
-        let cmd = "dot";
-        let args = [
-            `-Tsvg`,
-            `-o`,
-            `${dstSvgFile}`,
-            `${dotFile}`
-        ];
-        return this.exec.execPromise(cmd, args);
-        // dot -Tsvg -o graph.svg ./graph.dot
-    }
-    public async getTargets(
-        cmakeFile: string) {
-        let cmakeDir = path.dirname(cmakeFile);
-        let buildDir = path.join(cmakeDir,".cps","build")
-        if (fse.pathExistsSync(buildDir)) {
-            fse.removeSync(buildDir);
-        }
-        fse.mkdirpSync(buildDir);
-        let cmd = "cmake";
-        let args = [
-            `${cmakeFile}`
-        ];
-        let _ = this.exec.execWithResultSync(cmd, args, buildDir);
-        args = ['--build',
-                     `${buildDir}`,
-                    '--target',
-                    'help'
-                ];
-        
-        let targets = this.exec.execWithResultSync(cmd, args, buildDir);  
-        return targets; 
-    }
+    
 }
