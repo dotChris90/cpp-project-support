@@ -61,7 +61,7 @@ export class CppPrjSup {
         this.incDir = path.join(this.buildDir,"include");
         this.testDir = path.join(prjRoot,"test_package");
         this.testBuildDir = path.join(this.testDir,"build");
-        this.packageTreeFile = path.join(this.buildDir,"tree");
+        this.packageTreeFile = path.join(this.buildDir,"package");
         this.log = msg;
         this.doxygenPath = path.join(this.toolDir,"doxygen");
         this.cmakePath = path.join(this.toolDir,"cmake");
