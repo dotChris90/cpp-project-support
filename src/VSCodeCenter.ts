@@ -34,4 +34,7 @@ export class VSCodeCenter implements IMsgCenter {
 			placeHolder: question
 		});
     }
+    showSVG(uri: string): void {
+        vscode.commands.executeCommand('_svg.showSvgByUri', vscode.Uri.parse(uri));
+    }
 }

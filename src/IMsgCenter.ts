@@ -5,5 +5,6 @@ export interface IMsgCenter {
     showHint(text : string) : void;
     askInput(question : string, placeHolder : string) : Thenable<string | undefined>;
     pickFromList(question: string, list : string[]) : Thenable<string | undefined>;
+    showSVG(uri : string) : void;
     clear(): void;
 }

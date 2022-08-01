@@ -186,7 +186,7 @@ export class CppPrjSup {
         this.log.clear();
         await this.conan.geneneratePackageTree(this.conanFile,this.packageTreeFile);
         await this.dot.generateSvgFromDot(`${this.packageTreeFile}.dot`,`${this.packageTreeFile}.svg`);
-        this.log.showHint(`Look - ${this.packageTreeFile}.html`);
+        this.log.showSVG(`${this.packageTreeFile}.svg`);
     }
 
     public async generateTargetTree() {
@@ -195,7 +195,7 @@ export class CppPrjSup {
         await this.cmake.generateBuildFiles(this.cmakeFile,this.toolchainFile,"Release",this.conanBuildDir);
         await this.cmake.generateDot(this.conanBuildDir,this.cmakeFile,this.dotFile);
         await this.dot.generateSvgFromDot(this.dotFile,this.svgFile);
-        this.log.showHint(`Look - ${this.svgFile}`);
+        this.log.showSVG(`${this.svgFile}`);
     }
 
     public async build() {
@@ -247,11 +247,13 @@ export class CppPrjSup {
         return this.conan.getVersion(this.conanFile,this.buildDir);    
     }
 
-    public createPackageAndTest(
+    public async createPackageAndTest(
         profile : string = "default",
         buildType : string = "Debug"
     ) {
         fse.removeSync(this.testBuildDir);
+        let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+        buildType = buildType_!;
         this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile).then( () => {
             let testBin = path.join(
                 this.testBuildDir,
