@@ -1,10 +1,23 @@
 import {Executor} from './Executor';
+import * as commandExists from 'command-exists';
 
 export class Conan {
     private exec : Executor;
     constructor(
-        exec : Executor) {
+        exec : Executor
+    ) {
         this.exec = exec;
+        if (commandExists.sync("conan")) {
+            let cmd = "pip3";
+            let args = [
+                "install",
+                "conan"
+            ];
+            this.exec.execSync(cmd,args);
+        }
+        else {
+            // pass 
+        }
     }
     public createNewProject(
         projectName: string,

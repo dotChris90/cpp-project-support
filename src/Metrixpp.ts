@@ -40,6 +40,6 @@ export class Metrixpp {
         ];
         let dbFolder = path.dirname(dbFile);
         let view = this.exec.execWithResultSync(cmd, args,dbFolder);
-        fse.writeFileSync(resultFile,view);
+        fse.writeFileSync(resultFile,view.toString());
     }
 }

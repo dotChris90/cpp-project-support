@@ -4,16 +4,20 @@ import * as fse from 'fs-extra';
 
 export class CppCheck {
     private exec : Executor;
+    private cppCheckBin : string;
     constructor(
-        exec : Executor) {
+        exec : Executor,
+        cppCheckBin : string
+    ) {
         this.exec = exec;
+        this.cppCheckBin = cppCheckBin;
     }
     public generateReport(
         sourceDir : string,
         reportFile : string,
         workDir : string
     ) {
-        let cmd = "cppcheck";
+        let cmd = this.cppCheckBin;
         let args = [
             "--force",
             "--enable=all",
@@ -27,7 +31,7 @@ export class CppCheck {
         sourceDir : string,
         workDir : string
     ) {
-        let cmd = "cppcheck";
+        let cmd = this.cppCheckBin;
         let args = [
             "--force",
             `${sourceDir}`

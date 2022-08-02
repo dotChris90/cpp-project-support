@@ -1,23 +1,28 @@
 import {Executor} from './Executor';
 import * as path from 'path';
 import * as fse from 'fs-extra';
+import * as commandExists from 'command-exists';
 
 export class CMake {
     private exec : Executor;
+    private cmakeBin : string;
     constructor(
-        exec : Executor) {
+        exec : Executor,
+        cmakeBin : string
+    ) {
         this.exec = exec;
+        this.cmakeBin = cmakeBin;
     }
     public getAllCMakeOptions(
         cmakeFile: string) {
         let buildDir = path.dirname(cmakeFile).concat('.build');
         fse.mkdirpSync(buildDir);
         let opts = this.exec.execPromise(
-            'cmake', 
+            this.cmakeBin, 
             ['..'],
             buildDir).then(x => {
                 this.exec.execWithResult(
-                    'cmake',
+                    this.cmakeBin,
                     ['-LA'],
                     buildDir
                     );
@@ -30,7 +35,7 @@ export class CMake {
         buildType : string,
         workDir : string
     ) {
-        let cmd = "cmake";
+        let cmd = this.cmakeBin;
         let args = [
             `--toolchain=${toolchainFile}`,
             `-DCMAKE_BUILD_TYPE=${buildType}`,
@@ -44,7 +49,7 @@ export class CMake {
         cmakeFiles : string,
         dstDotFile : string
     ){
-        let cmd = "cmake";
+        let cmd = this.cmakeBin;
         let args = [
             `-S`,
             `${path.dirname(cmakeFiles)}`,

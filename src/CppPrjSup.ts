@@ -1,6 +1,7 @@
 import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
+import * as commandExists from 'command-exists';
 
 import {Conan} from './Conan';
 import {CMake} from './CMake';
@@ -37,6 +38,8 @@ export class CppPrjSup {
     private cppcheckPath : string;
     private toolchainFile : string;
     private dot : Dot;
+    private cmakeBin : string;
+    private cppcheckBin : string;
 
     constructor(
         msg: IMsgCenter,
@@ -65,38 +68,51 @@ export class CppPrjSup {
         this.log = msg;
         this.doxygenPath = path.join(this.toolDir,"doxygen");
         this.cmakePath = path.join(this.toolDir,"cmake");
+        this.cmakeBin = path.join(this.cmakePath,"bin","cmake");
         this.cppcheckPath = path.join(this.toolDir,"cppcheck");
+        this.cppcheckBin = path.join(this.cppcheckPath,"bin","cppcheck");
         this.conanTemp = path.join(cppCodeDir,"conan_new_default");
 
         let exec = new Executor(msg);
         this.conan = new Conan(exec);
-        this.cmake = new CMake(exec);
-        this.cppcheck = new CppCheck(exec);
-        this.dot = new Dot(exec);
-
+        
         fse.mkdirpSync(this.toolDir);
         this.installCmakeIfNotPresent();
+        if (commandExists.sync("cmake") ) {
+            this.cmake = new CMake(exec,"cmake"); 
+        }
+        else {
+            this.cmake = new CMake(exec,this.cmakeBin);
+        }
         this.installCppCheckIfNotPresent();
+        if (commandExists.sync("cppcheck")) {
+            this.cppcheck = new CppCheck(exec,"cppcheck")
+        }
+        else {
+            this.cppcheck = new CppCheck(exec,this.cppcheckBin);
+        }
         this.installDoxyGenIfNotPresent();
+
+        this.dot = new Dot(exec,"dot");
         
         this.setupTemplates();
 
     }   
 
     private async installCmakeIfNotPresent() {
-        if (!fse.pathExistsSync(this.cmakePath)) {
+        if (commandExists.sync("cmake") || !fse.pathExistsSync(this.cmakePath)) {
             this.log.showHint('install local cmake');
             await this.conan.deployTool('cmake','3.23.1',this.toolDir);
         }
     }
     private async installCppCheckIfNotPresent() {
-        if (!fse.pathExistsSync(this.cppcheckPath)) {
+        if (commandExists.sync("cppcheck") || !fse.pathExistsSync(this.cppcheckPath)) {
             this.log.showHint('install local cppcheck');
             await this.conan.deployTool('cppcheck','2.7.5',this.toolDir);
         }
     }
     private async installDoxyGenIfNotPresent() {
-        if (!fse.pathExistsSync(this.doxygenPath)) {
+        if (commandExists.sync("doxygen") || !fse.pathExistsSync(this.doxygenPath)) {
             this.log.showHint('install local doxygen');
             await this.conan.deployTool('doxygen','1.9.1',this.toolDir);
         }

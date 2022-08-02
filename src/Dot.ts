@@ -2,15 +2,19 @@ import {Executor} from './Executor';
 
 export class Dot {
     private exec : Executor;
+    private dotBin : string;
     constructor(
-        exec : Executor) {
+        exec : Executor,
+        dotBin : string
+        ) {
         this.exec = exec;
+        this.dotBin = dotBin;
     }
     public async generateSvgFromDot(
         dotFile : string, 
         dstSvgFile : string
     ) {
-        let cmd = "dot";
+        let cmd = this.dotBin;
         let args = [
             `-Tsvg`,
             `-o`,
