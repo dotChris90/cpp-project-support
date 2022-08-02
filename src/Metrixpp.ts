@@ -43,7 +43,10 @@ export class Metrixpp {
         if (fse.existsSync(resultFile)) {
             fse.removeSync(resultFile);
         }
-        //var file = fse.createWriteStream(resultFile);
-        fse.writeFileSync(resultFile,view.toString());
+        var file = fse.createWriteStream(resultFile);
+        file.on('error', function(err) { /* error handling */ });
+        view.forEach((v) => { file.write(v + '\n'); });
+        file.end();
+        //fse.writeFileSync(resultFile,view.toString());
     }
 }
