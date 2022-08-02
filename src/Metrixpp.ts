@@ -28,7 +28,7 @@ export class Metrixpp {
         let args = fse.readFileSync(configFile, 'utf-8').split("\n");
         args.unshift("collect");
         args.push(srcFolder);
-        this.exec.execSync(cmd,args);
+        this.exec.execWithResultSync(cmd,args,path.dirname(configFile));
     }
     public view(
         dbFile : string,
@@ -40,6 +40,10 @@ export class Metrixpp {
         ];
         let dbFolder = path.dirname(dbFile);
         let view = this.exec.execWithResultSync(cmd, args,dbFolder);
+        if (fse.existsSync(resultFile)) {
+            fse.removeSync(resultFile);
+        }
+        //var file = fse.createWriteStream(resultFile);
         fse.writeFileSync(resultFile,view.toString());
     }
 }

@@ -9,6 +9,7 @@ import {Dot} from './Dot';
 import {IMsgCenter} from './IMsgCenter';
 import {Executor} from './Executor';
 import {CppCheck} from './CppCheck';
+import {Metrixpp} from './Metrixpp';
 import { join } from 'path';
 
 export class CppPrjSup {
@@ -40,6 +41,8 @@ export class CppPrjSup {
     private dot : Dot;
     private cmakeBin : string;
     private cppcheckBin : string;
+    private metrixpp : Metrixpp;
+    private metrixppConfig : string;
 
     constructor(
         msg: IMsgCenter,
@@ -72,9 +75,11 @@ export class CppPrjSup {
         this.cppcheckPath = path.join(this.toolDir,"cppcheck");
         this.cppcheckBin = path.join(this.cppcheckPath,"bin","cppcheck");
         this.conanTemp = path.join(cppCodeDir,"conan_new_default");
+        this.metrixppConfig = path.join(this.prjRoot,"metrixpp.config");
 
         let exec = new Executor(msg);
         this.conan = new Conan(exec);
+        this.metrixpp = new Metrixpp(exec);
         
         fse.mkdirpSync(this.toolDir);
         this.installCmakeIfNotPresent();
@@ -308,5 +313,12 @@ export class CppPrjSup {
         }
         this.conan.deployTool(packageName,packageVersion,this.pkgDir);   
         this.log.showHint(`Package deployed at ${this.pkgDir}`);
+    }
+
+    public async createMetrix(
+
+    ) {
+        this.metrixpp.collect(this.metrixppConfig,"src");
+        this.metrixpp.view(path.join(this.prjRoot,"metrixpp.db"),path.join(this.prjRoot,"metrixpp.view"));
     }
 }

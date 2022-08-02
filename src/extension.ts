@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.packageTree', 	() => { cps.generatePackageTree();  });
 	vscode.commands.registerCommand('cps.targetTree', 	() => { cps.generateTargetTree();  });
 	vscode.commands.registerCommand('cps.clean', 		() => { cps.clean();  });
-	
+	vscode.commands.registerCommand('cps.metrix', 		() => { cps.createMetrix();  });
 }
 
 // this method is called when your extension is deactivated

@@ -22,7 +22,7 @@
     "onCommand:cps.deploy",
     "onCommand:cps.create",
     "onCommand:cps.clean",
-    "onView:cps-center"
+    "onCommand:cps.metrix"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -87,6 +87,10 @@
       {
         "command": "cps.cppcheck",
         "title": "CPS - Check C++ Files"
+      },
+      {
+        "command": "cps.metrix",
+        "title": "CPS - Create Metrix"
       },
       {
         "command": "cps.deploy",
