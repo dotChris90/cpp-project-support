@@ -36,7 +36,7 @@
       ]
     },
     "views": {
-      "cps-center" : [
+      "cps-center": [
         {
           "id": "buildAndPack",
           "name": "Build workflow"
@@ -66,7 +66,7 @@
       },
       {
         "command": "cps.installPick",
-        "title" : "CPS - Install packages with profile"
+        "title": "CPS - Install packages with profile"
       },
       {
         "command": "cps.packageTree",
@@ -86,7 +86,7 @@
       },
       {
         "command": "cps.cppcheck",
-        "title" : "CPS - Check C++ Files"
+        "title": "CPS - Check C++ Files"
       },
       {
         "command": "cps.deploy",
@@ -101,23 +101,23 @@
         "title": "Install default Release"
       }
     ],
-    "menus" : { 
+    "menus": {
       "view/item/context": [
-				{
-					"command": "cps.center.installdefault",
-					"when": "view == buildAndPack && viewItem == install"
-				},
         {
-					"command": "cps.importPkg",
-					"when": "view == buildAndPack && viewItem == install"
-				}
+          "command": "cps.center.installdefault",
+          "when": "view == buildAndPack && viewItem == install"
+        },
+        {
+          "command": "cps.importPkg",
+          "when": "view == buildAndPack && viewItem == install"
+        }
       ]
     }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "postcompile": "cp -R src/C++Code out", 
+    "postcompile": "cp -R src/C++Code out",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
@@ -139,10 +139,12 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
+    "@types/command-exists": "^1.2.0",
     "@types/fs-extra": "^9.0.13",
+    "command-exists": "^1.2.9",
     "fs-extra": "^10.1.0"
   },
-  "extensionPack": [ 
+  "extensionPack": [
     "ms-vscode.cpptools-extension-pack",
     "jock.svg"
   ]
