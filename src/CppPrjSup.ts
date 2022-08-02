@@ -221,8 +221,15 @@ export class CppPrjSup {
 
     public async build() {
         this.log.clear();
-        await this.conan.buildProject(path.join(".."),this.conanBuildDir);
-        this.log.showHint('build finish.');
+        await this.cppcheck.generateReport(this.srcRoot,this.cppReportFile,this.buildDir);
+        let hasError = await this.reportHasError();
+        if (hasError) {
+            this.log.showHint(`oh oh build failed - your project has an error - check ${this.cppReportFile}`);
+        }
+        else {
+            await this.conan.buildProject(path.join(".."),this.conanBuildDir);
+            this.log.showHint('build finish.');
+        }
     }
 
     public async getRequirements(
@@ -246,7 +253,7 @@ export class CppPrjSup {
     public async generateCppCheckReport() {
         this.log.clear();
         await this.cppcheck.generateReport(this.srcRoot,this.cppReportFile,this.buildDir);
-        let hasError = await this.sourceHasError();
+        let hasError = await this.reportHasError();
         if (hasError) {
             this.log.showHint(`oh oh - your project has an error - check ${this.cppReportFile}`);
         }
@@ -255,7 +262,7 @@ export class CppPrjSup {
         }
     }
 
-    public sourceHasError() {
+    public reportHasError() {
         this.log.clear();
         return this.cppcheck.srcDirHasError(this.srcRoot,this.buildDir);
     }
