@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 import {CppPrjSup} from './CppPrjSup';
 import {VSCodeCenter} from './VSCodeCenter';
+import {Config} from './Config';
 
 import { TreeDataProvider } from './CPSCenter/TreeDataProvider';
 
@@ -13,15 +14,18 @@ function getWorkSpace() : string {
 	? vscode.workspace.workspaceFolders[0].uri.fsPath : "";
 }
 
-function getNewCPSInstance(context : vscode.ExtensionContext) : CppPrjSup {
-	const workspaceRoot = getWorkSpace();
-	let codePath = path.join(context.extensionUri.path,"out","C++Code");
-	return new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot!);
-}
-
 export function activate(context: vscode.ExtensionContext) {
 
-	let cps = getNewCPSInstance(context);
+	const workspaceRoot = getWorkSpace();
+	let codePath = path.join(context.extensionUri.path,"out","C++Code");
+
+	let config = new Config();
+	config.srcDir = vscode.workspace.getConfiguration().get('conf.cps.srcDir')!;
+	config.buildDir = vscode.workspace.getConfiguration().get('conf.cps.buildDir')!;
+	config.metrixppFile = vscode.workspace.getConfiguration().get('conf.cps.metrixpp_file')!;
+	config.doxygenFile = vscode.workspace.getConfiguration().get('conf.cps.doxygen_file')!;
+	
+	let cps = new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot!,config);
 
 	vscode.commands.registerCommand('cps.newPrj', 		() => { cps.newPrj(); }); 
 	vscode.commands.registerCommand('cps.importPkg', 	() => { cps.importPackages("default"); });
@@ -35,6 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.targetTree', 	() => { cps.generateTargetTree();  });
 	vscode.commands.registerCommand('cps.clean', 		() => { cps.clean();  });
 	vscode.commands.registerCommand('cps.metrix', 		() => { cps.createMetrix();  });
+	vscode.commands.registerCommand('cps.doxygen', 		() => { cps.createDocumentation();  });
 }
 
 // this method is called when your extension is deactivated

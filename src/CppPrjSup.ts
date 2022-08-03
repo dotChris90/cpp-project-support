@@ -10,7 +10,8 @@ import {IMsgCenter} from './IMsgCenter';
 import {Executor} from './Executor';
 import {CppCheck} from './CppCheck';
 import {Metrixpp} from './Metrixpp';
-import { join } from 'path';
+import {Config} from './Config';
+import {Doxygen} from './Doxygen';
 
 export class CppPrjSup {
 
@@ -34,7 +35,9 @@ export class CppPrjSup {
     private log : IMsgCenter;
     private conanTemp : string;
     private conanBuildDir: string;
+    private doxygen : Doxygen;
     private doxygenPath : string;
+    private doxygenBin : string;
     private cmakePath : string;
     private cppcheckPath : string;
     private toolchainFile : string;
@@ -43,11 +46,13 @@ export class CppPrjSup {
     private cppcheckBin : string;
     private metrixpp : Metrixpp;
     private metrixppConfig : string;
+    private doxygenConfig : string;
 
     constructor(
         msg: IMsgCenter,
         cppCodeDir: string,
-        prjRoot : string) {
+        prjRoot : string, 
+        config : Config) {
         
         if (!fse.pathExistsSync(prjRoot)) {
         }
@@ -55,11 +60,11 @@ export class CppPrjSup {
         this.prjRoot = prjRoot;
         this.conanFile = path.join(this.prjRoot,"conanfile.py");
         this.cmakeFile = path.join(this.prjRoot,"CMakeLists.txt");
-        this.srcRoot = path.join(this.prjRoot,"src");
+        this.srcRoot = path.join(this.prjRoot,config.srcDir);
         this.buildDir = path.join(prjRoot,".cps");
         this.dotFile = path.join(this.buildDir,"target.dot");
         this.svgFile = path.join(this.buildDir,"target.svg");
-        this.conanBuildDir = path.join(this.prjRoot,"build");
+        this.conanBuildDir = path.join(this.prjRoot,config.buildDir);
         this.toolchainFile = path.join(this.conanBuildDir,path.join("generators","conan_toolchain.cmake"));
         this.toolDir = path.join(this.buildDir,"tools");
         this.cppReportFile = path.join(this.toolDir,"cpp.report");
@@ -70,18 +75,21 @@ export class CppPrjSup {
         this.packageTreeFile = path.join(this.buildDir,"package");
         this.log = msg;
         this.doxygenPath = path.join(this.toolDir,"doxygen");
+        this.doxygenBin = path.join(this.doxygenPath,"bin","doxygen");
         this.cmakePath = path.join(this.toolDir,"cmake");
         this.cmakeBin = path.join(this.cmakePath,"bin","cmake");
         this.cppcheckPath = path.join(this.toolDir,"cppcheck");
         this.cppcheckBin = path.join(this.cppcheckPath,"bin","cppcheck");
         this.conanTemp = path.join(cppCodeDir,"conan_new_default");
-        this.metrixppConfig = path.join(this.prjRoot,"metrixpp.config");
+        this.metrixppConfig = path.join(this.prjRoot,config.metrixppFile);
+        this.doxygenConfig = path.join(this.prjRoot,config.doxygenFile);
 
         let exec = new Executor(msg);
         this.conan = new Conan(exec);
         this.metrixpp = new Metrixpp(exec);
         
         fse.mkdirpSync(this.toolDir);
+        //CMake
         this.installCmakeIfNotPresent();
         if (commandExists.sync("cmake") ) {
             this.cmake = new CMake(exec,"cmake"); 
@@ -89,15 +97,23 @@ export class CppPrjSup {
         else {
             this.cmake = new CMake(exec,this.cmakeBin);
         }
+        // Cppcheck
         this.installCppCheckIfNotPresent();
         if (commandExists.sync("cppcheck")) {
-            this.cppcheck = new CppCheck(exec,"cppcheck")
+            this.cppcheck = new CppCheck(exec,"cppcheck");
         }
         else {
             this.cppcheck = new CppCheck(exec,this.cppcheckBin);
         }
+        // Doxygen
         this.installDoxyGenIfNotPresent();
-
+        if (commandExists.sync("doxygen")) {
+            this.doxygen = new Doxygen(exec,"doxygen");
+        }
+        else {
+            this.doxygen = new Doxygen(exec,this.doxygenBin);
+        }
+        // Dot
         this.dot = new Dot(exec,"dot");
         
         this.setupTemplates();
@@ -327,5 +343,15 @@ export class CppPrjSup {
     ) {
         this.metrixpp.collect(this.metrixppConfig,"src");
         this.metrixpp.view(path.join(this.prjRoot,"metrixpp.db"),path.join(this.prjRoot,"metrixpp.view"));
+    }
+
+    public async createDocumentation(
+    ) {
+        fse.removeSync(path.join(this.prjRoot,"docs"));
+        this.doxygen.generateDocumentation(this.doxygenConfig,this.prjRoot).then(
+            () => {
+                this.log.showHtml();
+            }
+        );
     }
 }

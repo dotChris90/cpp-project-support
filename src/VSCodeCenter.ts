@@ -37,4 +37,7 @@ export class VSCodeCenter implements IMsgCenter {
     showSVG(uri: string): void {
         vscode.commands.executeCommand('_svg.showSvgByUri', vscode.Uri.parse(uri));
     }
+    showHtml(): void {
+        vscode.commands.executeCommand('extension.liveServer.goOnline');
+    }
 }

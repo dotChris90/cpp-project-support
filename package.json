@@ -22,10 +22,36 @@
     "onCommand:cps.deploy",
     "onCommand:cps.create",
     "onCommand:cps.clean",
-    "onCommand:cps.metrix"
+    "onCommand:cps.metrix",
+    "onCommand:cps.doxygen"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration" : [
+      {
+        "id" : "cps",
+        "order": 1,
+        "title": "CPS",
+        "properties": {
+          "conf.cps.srcDir" : {
+            "type" : "string",
+            "default" : "src"
+          },
+          "conf.cps.buildDir" : {
+            "type" : "string",
+            "default" : "build"
+          },
+          "conf.cps.metrixpp_file" : {
+            "type" : "string",
+            "default" : "metrixpp.config"
+          },
+          "conf.cps.doxygen_file" : {
+            "type" : "string",
+            "default" : "doxygen.conf"
+          }
+        }
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -83,6 +109,10 @@
       {
         "command": "cps.clean",
         "title": "CPS - Clean build dir"
+      },
+      {
+        "command": "cps.doxygen",
+        "title" : "CPS - Create Doxygen Doc"
       },
       {
         "command": "cps.cppcheck",
@@ -150,6 +180,8 @@
   },
   "extensionPack": [
     "ms-vscode.cpptools-extension-pack",
-    "jock.svg"
+    "jock.svg",
+    "ritwickdey.LiveServer",
+    "auchenberg.vscode-browser-preview"
   ]
 }
