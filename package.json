@@ -23,7 +23,8 @@
     "onCommand:cps.create",
     "onCommand:cps.clean",
     "onCommand:cps.metrix",
-    "onCommand:cps.doxygen"
+    "onCommand:cps.doxygen",
+    "onCommand:cps.importTemplate"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -109,6 +110,10 @@
       {
         "command": "cps.clean",
         "title": "CPS - Clean build dir"
+      },
+      {
+        "command": "cps.importTemplate",
+        "title": "CPS - Import default template"
       },
       {
         "command": "cps.doxygen",

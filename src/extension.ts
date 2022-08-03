@@ -27,19 +27,21 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	let cps = new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot!,config);
 
-	vscode.commands.registerCommand('cps.newPrj', 		() => { cps.newPrj(); }); 
-	vscode.commands.registerCommand('cps.importPkg', 	() => { cps.importPackages("default"); });
-	vscode.commands.registerCommand('cps.install', 		() => { cps.installDeps("default","Release"); });
-	vscode.commands.registerCommand('cps.installPick', 	() => { cps.installDeps(); });
-	vscode.commands.registerCommand('cps.build', 		() => { cps.build(); });
-	vscode.commands.registerCommand('cps.deploy', 		() => { cps.deployProject();  });
-	vscode.commands.registerCommand('cps.create', 		() => { cps.createPackageAndTest();  });
-	vscode.commands.registerCommand('cps.cppcheck', 	() => { cps.generateCppCheckReport();  });
-	vscode.commands.registerCommand('cps.packageTree', 	() => { cps.generatePackageTree();  });
-	vscode.commands.registerCommand('cps.targetTree', 	() => { cps.generateTargetTree();  });
-	vscode.commands.registerCommand('cps.clean', 		() => { cps.clean();  });
-	vscode.commands.registerCommand('cps.metrix', 		() => { cps.createMetrix();  });
-	vscode.commands.registerCommand('cps.doxygen', 		() => { cps.createDocumentation();  });
+	vscode.commands.registerCommand('cps.newPrj', 			() => { cps.newPrj(); }); 
+	vscode.commands.registerCommand('cps.importPkg', 		() => { cps.importPackages("default"); });
+	vscode.commands.registerCommand('cps.install', 			() => { cps.installDeps("default","Release"); });
+	vscode.commands.registerCommand('cps.installPick', 		() => { cps.installDeps(); });
+	vscode.commands.registerCommand('cps.build', 			() => { cps.build(); });
+	vscode.commands.registerCommand('cps.deploy', 			() => { cps.deployProject();  });
+	vscode.commands.registerCommand('cps.create', 			() => { cps.createPackageAndTest();  });
+	vscode.commands.registerCommand('cps.cppcheck', 		() => { cps.generateCppCheckReport();  });
+	vscode.commands.registerCommand('cps.packageTree', 		() => { cps.generatePackageTree();  });
+	vscode.commands.registerCommand('cps.targetTree', 		() => { cps.generateTargetTree();  });
+	vscode.commands.registerCommand('cps.clean', 			() => { cps.clean();  });
+	vscode.commands.registerCommand('cps.metrix', 			() => { cps.createMetrix();  });
+	vscode.commands.registerCommand('cps.doxygen', 			() => { cps.createDocumentation();  });
+	vscode.commands.registerCommand('cps.importTemplate', 	() => { cps.importDefaultTemplate();  });
+	
 }
 
 // this method is called when your extension is deactivated

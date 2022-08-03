@@ -47,6 +47,7 @@ export class CppPrjSup {
     private metrixpp : Metrixpp;
     private metrixppConfig : string;
     private doxygenConfig : string;
+    private conanDefaultTemplatePath : string;
 
     constructor(
         msg: IMsgCenter,
@@ -83,6 +84,14 @@ export class CppPrjSup {
         this.conanTemp = path.join(cppCodeDir,"conan_new_default");
         this.metrixppConfig = path.join(this.prjRoot,config.metrixppFile);
         this.doxygenConfig = path.join(this.prjRoot,config.doxygenFile);
+        this.conanDefaultTemplatePath = path.join(
+            os.homedir(),
+            ".conan",
+            "templates",
+            "command",
+            "new",
+            "default"
+        );
 
         let exec = new Executor(msg);
         this.conan = new Conan(exec);
@@ -116,7 +125,9 @@ export class CppPrjSup {
         // Dot
         this.dot = new Dot(exec,"dot");
         
-        this.setupTemplates();
+        if (!this.conanDefaultTemplateExists()) {
+            this.importDefaultTemplate();
+        }
 
     }   
 
@@ -136,23 +147,6 @@ export class CppPrjSup {
         if (commandExists.sync("doxygen") || !fse.pathExistsSync(this.doxygenPath)) {
             this.log.showHint('install local doxygen');
             await this.conan.deployTool('doxygen','1.9.1',this.toolDir);
-        }
-    }
-    
-    private async setupTemplates() {
-        let conanTemplate = path.join(
-            os.homedir(),
-            ".conan",
-            "templates",
-            "command",
-            "new",
-            "default"
-        );
-        if (!fse.existsSync(conanTemplate)) {
-            fse.copySync(
-                this.conanTemp,
-                conanTemplate
-            );
         }
     }
 
@@ -352,6 +346,26 @@ export class CppPrjSup {
             () => {
                 this.log.showHtml();
             }
+        );
+    }
+    
+    private conanDefaultTemplateExists() {
+        return fse.existsSync(this.conanDefaultTemplatePath);
+    }
+
+    public async importDefaultTemplate(
+
+    ) {
+        if (this.conanDefaultTemplateExists()) {
+            let overwrite_ = await this.log.pickFromList("Overwrite default template?",["yes","no"]);
+            let overwrite = (overwrite_ === undefined) ? "yes" : overwrite_!;
+            if (overwrite === "yes") {
+                fse.removeSync(this.conanDefaultTemplatePath);
+            }
+        }
+        fse.copySync(
+            this.conanTemp,
+            this.conanDefaultTemplatePath
         );
     }
 }
