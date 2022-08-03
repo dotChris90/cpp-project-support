@@ -1,5 +1,10 @@
 {
   "name": "cps",
+  "publisher": "dotchris90",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dotChris90/cpp-project-support"
+  },
   "displayName": "C++PrjSup",
   "description": "Support for your C++ project",
   "version": "0.0.1",
