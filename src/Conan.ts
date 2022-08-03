@@ -7,7 +7,7 @@ export class Conan {
         exec : Executor
     ) {
         this.exec = exec;
-        if (commandExists.sync("conan")) {
+        if (!commandExists.sync("conan")) {
             let cmd = "pip3";
             let args = [
                 "install",

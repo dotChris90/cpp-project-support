@@ -138,19 +138,19 @@ export class CppPrjSup {
     }   
 
     private async installCmakeIfNotPresent() {
-        if (commandExists.sync("cmake") || !fse.pathExistsSync(this.cmakePath)) {
+        if (!commandExists.sync("cmake") || !fse.pathExistsSync(this.cmakePath)) {
             this.log.showHint('install local cmake');
             await this.conan.deployTool('cmake','3.23.1',this.toolDir);
         }
     }
     private async installCppCheckIfNotPresent() {
-        if (commandExists.sync("cppcheck") || !fse.pathExistsSync(this.cppcheckPath)) {
+        if (!commandExists.sync("cppcheck") || !fse.pathExistsSync(this.cppcheckPath)) {
             this.log.showHint('install local cppcheck');
             await this.conan.deployTool('cppcheck','2.7.5',this.toolDir);
         }
     }
     private async installDoxyGenIfNotPresent() {
-        if (commandExists.sync("doxygen") || !fse.pathExistsSync(this.doxygenPath)) {
+        if (!commandExists.sync("doxygen") || !fse.pathExistsSync(this.doxygenPath)) {
             this.log.showHint('install local doxygen');
             await this.conan.deployTool('doxygen','1.9.1',this.toolDir);
         }
