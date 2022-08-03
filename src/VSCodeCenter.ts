@@ -40,4 +40,7 @@ export class VSCodeCenter implements IMsgCenter {
     showHtml(): void {
         vscode.commands.executeCommand('extension.liveServer.goOnline');
     }
+    showTxt(uri: string): void {
+        vscode.commands.executeCommand('vscode.open',vscode.Uri.parse(uri));
+    }
 }

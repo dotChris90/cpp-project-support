@@ -19,6 +19,8 @@ export class CppPrjSup {
     private cmake : CMake;
     private cppcheck : CppCheck;
     private cppReportFile : string;
+    private cppReportXMLFile : string;
+    private cppReportHTMLDir : string;
     private dotFile : string;
     private svgFile : string;
     private packageTreeFile : string;
@@ -46,6 +48,7 @@ export class CppPrjSup {
     private cppcheckBin : string;
     private metrixpp : Metrixpp;
     private metrixppConfig : string;
+    private metrixppViewFile : string;
     private doxygenConfig : string;
     private conanDefaultTemplatePath : string;
 
@@ -68,7 +71,9 @@ export class CppPrjSup {
         this.conanBuildDir = path.join(this.prjRoot,config.buildDir);
         this.toolchainFile = path.join(this.conanBuildDir,path.join("generators","conan_toolchain.cmake"));
         this.toolDir = path.join(this.buildDir,"tools");
-        this.cppReportFile = path.join(this.toolDir,"cpp.report");
+        this.cppReportFile = path.join(this.toolDir,"cppcheck_report.txt");
+        this.cppReportXMLFile = path.join(this.toolDir,"cppcheck_report.xml");
+        this.cppReportHTMLDir = path.join(this.toolDir,"cppcheck_report_html");
         this.pkgDir = path.join(this.buildDir,"pkgs");
         this.incDir = path.join(this.buildDir,"include");
         this.testDir = path.join(prjRoot,"test_package");
@@ -83,6 +88,7 @@ export class CppPrjSup {
         this.cppcheckBin = path.join(this.cppcheckPath,"bin","cppcheck");
         this.conanTemp = path.join(cppCodeDir,"conan_new_default");
         this.metrixppConfig = path.join(this.prjRoot,config.metrixppFile);
+        this.metrixppViewFile = path.join(this.toolDir,"metrixpp_view.txt");
         this.doxygenConfig = path.join(this.prjRoot,config.doxygenFile);
         this.conanDefaultTemplatePath = path.join(
             os.homedir(),
@@ -231,10 +237,11 @@ export class CppPrjSup {
 
     public async build() {
         this.log.clear();
-        await this.cppcheck.generateReport(this.srcRoot,this.cppReportFile,this.buildDir);
+        await this.cppcheck.generateReportText(this.srcRoot,this.cppReportFile,this.buildDir);
         let hasError = await this.reportHasError();
         if (hasError) {
             this.log.showHint(`oh oh build failed - your project has an error - check ${this.cppReportFile}`);
+            this.log.showTxt(this.cppReportFile);
         }
         else {
             await this.conan.buildProject(path.join(".."),this.conanBuildDir);
@@ -260,10 +267,25 @@ export class CppPrjSup {
         fse.mkdirpSync(path.join(this.prjRoot,"pkg"));    
     }
 
-    public async generateCppCheckReport() {
+    public async generateCppCheckTextReport() {
         this.log.clear();
-        await this.cppcheck.generateReport(this.srcRoot,this.cppReportFile,this.buildDir);
+        await this.cppcheck.generateReportText(this.srcRoot,this.cppReportFile,this.buildDir);
         let hasError = await this.reportHasError();
+        if (hasError) {
+            this.log.showHint(`oh oh - your project has an error - check ${this.cppReportFile}`);
+        }
+        else {
+            this.log.showHint('All good!');
+        }
+        this.log.showTxt(this.cppReportFile);
+    }
+
+    public async generateCppCheckHtmlReport() {
+        this.log.clear();
+        await this.cppcheck.generateReportText(this.srcRoot,this.cppReportFile,this.buildDir);
+        let hasError = await this.reportHasError();
+        await this.cppcheck.generateReportXML(this.srcRoot,this.cppReportXMLFile,this.buildDir);
+        await this.cppcheck.convertXML2HTml(this.srcRoot,this.cppReportXMLFile,this.cppReportHTMLDir,this.buildDir);
         if (hasError) {
             this.log.showHint(`oh oh - your project has an error - check ${this.cppReportFile}`);
         }
@@ -335,8 +357,9 @@ export class CppPrjSup {
     public async createMetrix(
 
     ) {
-        this.metrixpp.collect(this.metrixppConfig,"src");
-        this.metrixpp.view(path.join(this.prjRoot,"metrixpp.db"),path.join(this.prjRoot,"metrixpp.view"));
+        await this.metrixpp.collect(this.metrixppConfig,"src");
+        this.metrixpp.view(path.join(this.prjRoot,"metrixpp.db"),this.metrixppViewFile);
+        this.log.showTxt(this.metrixppViewFile);
     }
 
     public async createDocumentation(

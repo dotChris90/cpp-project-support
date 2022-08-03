@@ -34,13 +34,15 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.build', 			() => { cps.build(); });
 	vscode.commands.registerCommand('cps.deploy', 			() => { cps.deployProject();  });
 	vscode.commands.registerCommand('cps.create', 			() => { cps.createPackageAndTest();  });
-	vscode.commands.registerCommand('cps.cppcheck', 		() => { cps.generateCppCheckReport();  });
+	vscode.commands.registerCommand('cps.cppcheckText', 	() => { cps.generateCppCheckTextReport();  });
 	vscode.commands.registerCommand('cps.packageTree', 		() => { cps.generatePackageTree();  });
 	vscode.commands.registerCommand('cps.targetTree', 		() => { cps.generateTargetTree();  });
 	vscode.commands.registerCommand('cps.clean', 			() => { cps.clean();  });
 	vscode.commands.registerCommand('cps.metrix', 			() => { cps.createMetrix();  });
 	vscode.commands.registerCommand('cps.doxygen', 			() => { cps.createDocumentation();  });
 	vscode.commands.registerCommand('cps.importTemplate', 	() => { cps.importDefaultTemplate();  });
+	// ToDo : better format and add command to package.json
+	//vscode.commands.registerCommand('cps.cppcheckHtml', 	() => { cps.generateCppCheckHtmlReport();  });
 	
 }
 

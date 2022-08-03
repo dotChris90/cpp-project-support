@@ -12,7 +12,38 @@ export class CppCheck {
         this.exec = exec;
         this.cppCheckBin = cppCheckBin;
     }
-    public generateReport(
+    public generateReportXML(
+        sourceDir : string,
+        reportFile : string,
+        workDir : string
+    ) {
+        let cmd = this.cppCheckBin;
+        let args = [
+            "--force",
+            "--enable=all",
+            "--xml",
+            "--xml-version=2",
+            `--output-file=${reportFile}`,
+            `${sourceDir}`
+        ];
+        return this.exec.execPromise(cmd, args, workDir);
+    }
+    public convertXML2HTml(
+        sourceDir : string,
+        xmlReportFile : string,
+        outDst : string,
+        workDir : string 
+    ) {
+        //"cppcheck-htmlreport --source-dir=. --title=VIMs_SRC --file=report-src.xml --report-dir=VIMs_SRC"
+        let cmd = this.cppCheckBin + "-htmlreport";
+        let args = [
+            `--source-dir=${sourceDir}`,
+            `--file=${xmlReportFile}`,
+            `--report-dir=${outDst}`
+        ];
+        return this.exec.execPromise(cmd, args, workDir);
+    }
+    public generateReportText(
         sourceDir : string,
         reportFile : string,
         workDir : string

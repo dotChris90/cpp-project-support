@@ -16,7 +16,8 @@
     "onCommand:cps.install",
     "onCommand:cps.build",
     "onCommand:cps.req",
-    "onCommand:cps.cppcheck",
+    "onCommand:cps.cppcheckText",
+    "onCommand:cps.cppcheckHtml",
     "onCommand:cps.packageTree",
     "onCommand:cps.targetTree",
     "onCommand:cps.deploy",
@@ -120,8 +121,8 @@
         "title" : "CPS - Create Doxygen Doc"
       },
       {
-        "command": "cps.cppcheck",
-        "title": "CPS - Check C++ Files"
+        "command": "cps.cppcheckText",
+        "title": "CPS - Check C++ Files and generate txt report"
       },
       {
         "command": "cps.metrix",

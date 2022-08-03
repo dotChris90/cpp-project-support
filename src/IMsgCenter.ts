@@ -7,5 +7,6 @@ export interface IMsgCenter {
     pickFromList(question: string, list : string[]) : Thenable<string | undefined>;
     showSVG(uri : string) : void;
     showHtml() : void; 
+    showTxt(uri : string) : void; 
     clear(): void;
 }
