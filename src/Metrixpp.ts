@@ -8,17 +8,12 @@ export class Metrixpp {
     constructor(
         exec : Executor) {
         this.exec = exec;
-        if (!commandExists.sync("metrix++")) {
-            let cmd = "pip3";
-            let args = [
-                "install",
-                "metrixpp"
-            ];
-            this.exec.execSync(cmd,args);
-        }
-        else {
-            // pass 
-        }
+        let cmd = "pip3";
+        let args = [
+            "install",
+            "metrixpp"
+        ];
+        this.exec.execSync(cmd,args);
     }
     public async collect(
         configFile : string,

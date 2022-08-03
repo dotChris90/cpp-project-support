@@ -7,17 +7,12 @@ export class Conan {
         exec : Executor
     ) {
         this.exec = exec;
-        if (!commandExists.sync("conan")) {
-            let cmd = "pip3";
-            let args = [
-                "install",
-                "conan"
-            ];
-            this.exec.execSync(cmd,args);
-        }
-        else {
-            // pass 
-        }
+        let cmd = "pip3";
+        let args = [
+            "install",
+            "conan"
+        ];
+        this.exec.execSync(cmd,args);
     }
     public createNewProject(
         projectName: string,

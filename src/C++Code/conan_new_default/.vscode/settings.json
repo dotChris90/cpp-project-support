@@ -2,7 +2,7 @@
 {
     "C_Cpp.default.includePath": [
         "build/include/**",
-        ".cps/"
+        ".cps/pkgs/include/**",
         "src/**"
     ],
     "C_Cpp.clang_format_style": "file",
@@ -33,5 +33,6 @@
         "clang-analyzer-security.*",
         "clang-analyzer-valist.*"
     ],
-    "liveServer.settings.root": "/docs/html/"
+    "liveServer.settings.root": "/docs/html/",
+    "liveServer.settings.useBrowserPreview": true
 }
