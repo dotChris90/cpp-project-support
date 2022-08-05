@@ -1,11 +1,12 @@
 {
   "name": "cps",
   "publisher": "dotchris90",
+  "icon": "resources/icons/ISO_C++_Logo.svg.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/dotChris90/cpp-project-support"
   },
-  "displayName": "C++PrjSup",
+  "displayName": "C++ Project Support",
   "description": "Support for your C++ project",
   "version": "0.0.1",
   "engines": {
@@ -84,6 +85,12 @@
           "id": "buildAndPack",
           "name": "Build workflow"
         }
+      ],
+      "explorer": [
+          {
+            "id": "cps.center",
+            "name": "CPS"
+          }
       ]
     },
     "commands": [
