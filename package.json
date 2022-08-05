@@ -30,7 +30,8 @@
     "onCommand:cps.clean",
     "onCommand:cps.metrix",
     "onCommand:cps.doxygen",
-    "onCommand:cps.importTemplate"
+    "onCommand:cps.importTemplate",
+    "onCommand:cps.inspect"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -153,6 +154,10 @@
       {
         "command": "cps.center.installdefault",
         "title": "Install default Release"
+      },
+      {
+        "command": "cps.inspect",
+        "title": "CPS - inspect project and dependencies"
       }
     ],
     "menus": {

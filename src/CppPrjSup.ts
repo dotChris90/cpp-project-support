@@ -50,6 +50,7 @@ export class CppPrjSup {
     private metrixppConfig : string;
     private metrixppViewFile : string;
     private doxygenConfig : string;
+    private inspectAllFile : string;
     private conanDefaultTemplatePath : string;
 
     constructor(
@@ -89,6 +90,7 @@ export class CppPrjSup {
         this.conanTemp = path.join(cppCodeDir,"conan_new_default");
         this.metrixppConfig = path.join(this.prjRoot,config.metrixppFile);
         this.metrixppViewFile = path.join(this.toolDir,"metrixpp_view.txt");
+        this.inspectAllFile = path.join(this.toolDir, "inspect.txt");
         this.doxygenConfig = path.join(this.prjRoot,config.doxygenFile);
         this.conanDefaultTemplatePath = path.join(
             os.homedir(),
@@ -394,5 +396,26 @@ export class CppPrjSup {
             this.conanTemp,
             this.conanDefaultTemplatePath
         );
+    }
+
+    public async inspectAllPkgOptions(
+    ) {
+        this.log.showHint("All depending packages of this project are inspected - that take some time.")
+        let packages = await this.conan.getProjectPackagesRecursive(this.prjRoot);
+        let inspectResult = await this.conan.inspect(this.prjRoot,this.prjRoot);
+        inspectResult.push("");
+        inspectResult.push("");
+
+        for( let package_idx of packages) {
+            let inspect_idx = await this.conan.inspect(package_idx,this.prjRoot);
+            inspect_idx.push("");
+            inspect_idx.push("");
+            inspectResult = inspectResult.concat(inspect_idx);
+        }
+        var file = fse.createWriteStream(this.inspectAllFile);
+        file.on('error', function(err) { /* error handling */ });
+        inspectResult.forEach((v) => { file.write(v + '\n'); });
+        file.end();
+        this.log.showTxt(this.inspectAllFile);
     }
 }

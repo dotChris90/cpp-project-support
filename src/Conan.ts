@@ -1,5 +1,7 @@
 import {Executor} from './Executor';
-import * as commandExists from 'command-exists';
+import * as fse from 'fs-extra';
+import * as path from 'path';
+import * as os from 'os';
 
 export class Conan {
     private exec : Executor;
@@ -37,6 +39,41 @@ export class Conan {
         ];
         return this.exec.execWithResult(cmd, args).then(x => x.filter(text => text !== 'default'))
                                                   .then(x => ["default"].concat(x));
+    }
+    public async getProjectPackagesRecursive(
+        projectRoot : string
+    ) {
+        let package_dot = path.join(fse.mkdtempSync(path.join(os.tmpdir(), 'cps-')),"package.dot");
+        let cmd = "conan";
+        let args = [
+            "info",
+            `${projectRoot}`,
+            "-g",
+            `${package_dot}`
+        ];
+        await this.exec.execPromise(cmd,args);
+        let diagraph = fse.readFileSync(package_dot).toString().split("\n");
+        fse.removeSync(package_dot);
+        diagraph.splice(0,1);
+        diagraph.splice(diagraph.length-1,1);
+        diagraph.splice(diagraph.length-1,1);
+        let packages = new Set<string>();
+        diagraph.forEach( line => {
+            let buffer = line.split("->");
+            let leftPackage = buffer[0].trim();
+            let rightPackage = buffer[1].trim();
+            packages.add(leftPackage);
+            packages.add(rightPackage);
+        });
+        let packages_array = Array.from(packages.values());
+        let idx = packages_array.findIndex(package_idx => {
+            return (package_idx.startsWith('"conanfile.py ('))
+        });
+        packages_array.splice(idx,1);
+        for (var jdx = 0; jdx < packages_array.length; jdx++) {
+            packages_array[jdx] = packages_array[jdx].replace('"','').replace('"','');
+        }
+        return packages_array;
     }
     public geneneratePackageTree(conanfile: string, dstFile: string) {
         let cmd = "conan";
@@ -169,6 +206,17 @@ export class Conan {
             pkgIdx++;
         }                        
         return packages;
+    }
+    public inspect(
+        conanfileOrPkgName : string,
+        workDir : string
+    ) {
+        let cmd = "conan";
+        let args = [
+            "inspect",
+            `${conanfileOrPkgName}`
+        ];
+        return this.exec.execWithResult(cmd,args,workDir);
     }
     public getNameSync(
         conanFile : string,
