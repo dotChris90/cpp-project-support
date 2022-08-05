@@ -42,19 +42,28 @@
         "properties": {
           "conf.cps.srcDir" : {
             "type" : "string",
-            "default" : "src"
+            "default" : "src",
+            "description": "location of source directory (relative to project root)"
           },
           "conf.cps.buildDir" : {
             "type" : "string",
-            "default" : "build"
+            "default" : "build",
+            "description": "location of build directory (relative to project root)"
           },
           "conf.cps.metrixpp_file" : {
             "type" : "string",
-            "default" : "metrixpp.config"
+            "default" : "metrixpp.config",
+            "description": "location of metrixpp.conf file (relative to project root)"
           },
           "conf.cps.doxygen_file" : {
             "type" : "string",
-            "default" : "doxygen.conf"
+            "default" : "doxygen.conf",
+            "description": "location of doxygen.conf file (relative to project root)"
+          },
+          "conf.cps.pkgDir" : {
+            "type" : "string",
+            "default" : "pkg",
+            "description": "location of deployed package directory (relative to project root)"
           }
         }
       }

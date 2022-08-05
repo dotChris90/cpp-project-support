@@ -74,7 +74,7 @@ export class CppPrjSup {
         this.cppReportFile = path.join(this.toolDir,"cppcheck_report.txt");
         this.cppReportXMLFile = path.join(this.toolDir,"cppcheck_report.xml");
         this.cppReportHTMLDir = path.join(this.toolDir,"cppcheck_report_html");
-        this.pkgDir = path.join(this.buildDir,"pkgs");
+        this.pkgDir = path.join(this.prjRoot,config.pkgDir);
         this.incDir = path.join(this.buildDir,"include");
         this.testDir = path.join(prjRoot,"test_package");
         this.testBuildDir = path.join(this.testDir,"build");
@@ -130,10 +130,6 @@ export class CppPrjSup {
         }
         // Dot
         this.dot = new Dot(exec,"dot");
-        
-        if (!this.conanDefaultTemplateExists()) {
-            this.importDefaultTemplate();
-        }
 
     }   
 
@@ -167,19 +163,21 @@ export class CppPrjSup {
     }
 
     public async importPackages(
-        profile : string = ""   
     ) {
         this.log.clear();
-        if (profile === "") {
-            let profile_ = await this.log.askInput("Choose a profile","default");
-            profile = profile_!;
-        }
+        
+        let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+        let buildType = buildType_!;
+        let profiles = await this.conan.getProfiles();
+        let profile_ = await this.log.pickFromList("Choose a profile",profiles);
+        let profile = profile_!;
+        
         // ToDo : Check
         //fse.mkdirpSync(this.pkgDir);
         //fse.removeSync(this.pkgDir);
         fse.mkdirpSync(this.pkgDir);
-        await this.conan.deployDeps(profile,"default","Release",this.pkgDir,path.join("..",".."));
-        await this.conan.deployDeps(profile,"default","Release",this.pkgDir,path.join("..","..","test_package"));
+        await this.conan.deployDeps(profile,"default",buildType,this.pkgDir,path.join("..",".."));
+        await this.conan.deployDeps(profile,"default",buildType,this.pkgDir,path.join("..","..","test_package"));
 
         let packages = fse.readdirSync(this.pkgDir, { withFileTypes: true })
                           .filter(dirent => dirent.isDirectory())
@@ -339,9 +337,15 @@ export class CppPrjSup {
     }
 
     public async deployProject(
-        profile : string = "default",
-        buildType : string = "Release"
+        
         ) {
+
+        let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+        let buildType = buildType_!;
+        let profiles = await this.conan.getProfiles();
+        let profile_ = await this.log.pickFromList("Choose a profile",profiles);
+        let profile = profile_!;
+            
         await this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile);
         fse.mkdirpSync(this.pkgDir);
         let packageName = await this.getPackageName();

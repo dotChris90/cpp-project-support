@@ -20,17 +20,20 @@ export function activate(context: vscode.ExtensionContext) {
 	let codePath = path.join(context.extensionUri.path,"out","C++Code");
 
 	let config = new Config();
-	config.srcDir = vscode.workspace.getConfiguration().get('conf.cps.srcDir')!;
-	config.buildDir = vscode.workspace.getConfiguration().get('conf.cps.buildDir')!;
+
+	config.srcDir 		= vscode.workspace.getConfiguration().get('conf.cps.srcDir')!;
+	config.buildDir 	= vscode.workspace.getConfiguration().get('conf.cps.buildDir')!;
 	config.metrixppFile = vscode.workspace.getConfiguration().get('conf.cps.metrixpp_file')!;
-	config.doxygenFile = vscode.workspace.getConfiguration().get('conf.cps.doxygen_file')!;
+	config.doxygenFile 	= vscode.workspace.getConfiguration().get('conf.cps.doxygen_file')!;
+	config.pkgDir 		= vscode.workspace.getConfiguration().get('conf.cps.pkgDir')!;
 	
 	let cps = new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot!,config);
 
 	vscode.commands.registerCommand('cps.newPrj', 			() => { cps.newPrj(); }); 
-	vscode.commands.registerCommand('cps.importPkg', 		() => { cps.importPackages("default"); });
-	vscode.commands.registerCommand('cps.install', 			() => { cps.installDeps("default","Release"); });
-	vscode.commands.registerCommand('cps.installPick', 		() => { cps.installDeps(); });
+	vscode.commands.registerCommand('cps.importPkg', 		() => { cps.importPackages(); });
+	vscode.commands.registerCommand('cps.install', 			() => { cps.installDeps(); });
+	// ToDo : rethink if need 2 separate install commands
+	//vscode.commands.registerCommand('cps.installPick', 		() => { cps.installDeps(); });
 	vscode.commands.registerCommand('cps.build', 			() => { cps.build(); });
 	vscode.commands.registerCommand('cps.deploy', 			() => { cps.deployProject();  });
 	vscode.commands.registerCommand('cps.create', 			() => { cps.createPackageAndTest();  });
