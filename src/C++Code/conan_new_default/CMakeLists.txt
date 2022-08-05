@@ -16,16 +16,10 @@ target_link_libraries(Hello fmt::fmt)
 set_target_properties(Hello PROPERTIES PUBLIC_HEADER "src/Greeter.hpp"
 )
 
-install(TARGETS main DESTINATION "."
-        RUNTIME DESTINATION bin
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-)
-
-install(TARGETS Hello DESTINATION "."
+install(TARGETS main Hello DESTINATION "."
         PUBLIC_HEADER DESTINATION include
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
-        )
+)
 
