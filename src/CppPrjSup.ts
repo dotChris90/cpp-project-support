@@ -44,6 +44,7 @@ export class CppPrjSup {
     private cppcheckPath : string;
     private toolchainFile : string;
     private dot : Dot;
+    private deployDir : string;
     private cmakeBin : string;
     private cppcheckBin : string;
     private metrixpp : Metrixpp;
@@ -75,7 +76,7 @@ export class CppPrjSup {
         this.cppReportFile = path.join(this.toolDir,"cppcheck_report.txt");
         this.cppReportXMLFile = path.join(this.toolDir,"cppcheck_report.xml");
         this.cppReportHTMLDir = path.join(this.toolDir,"cppcheck_report_html");
-        this.pkgDir = path.join(this.prjRoot,config.pkgDir);
+        this.pkgDir = path.join(this.buildDir,config.pkgDir);
         this.incDir = path.join(this.buildDir,"include");
         this.testDir = path.join(prjRoot,"test_package");
         this.testBuildDir = path.join(this.testDir,"build");
@@ -92,6 +93,7 @@ export class CppPrjSup {
         this.metrixppViewFile = path.join(this.toolDir,"metrixpp_view.txt");
         this.inspectAllFile = path.join(this.toolDir, "inspect.txt");
         this.doxygenConfig = path.join(this.prjRoot,config.doxygenFile);
+        this.deployDir = path.join(this.prjRoot,config.deployDir);
         this.conanDefaultTemplatePath = path.join(
             os.homedir(),
             ".conan",
@@ -168,11 +170,12 @@ export class CppPrjSup {
     ) {
         this.log.clear();
         
-        let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
-        let buildType = buildType_!;
-        let profiles = await this.conan.getProfiles();
-        let profile_ = await this.log.pickFromList("Choose a profile",profiles);
-        let profile = profile_!;
+        let buildType_  = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+        let buildType   = (buildType_ === undefined) ? "Release" : buildType_!;
+    
+        let profiles    = await this.conan.getProfiles();
+        let profile_    = await this.log.pickFromList("Choose a profile",profiles);
+        let profile     = (profile_ === undefined ) ? "default" : profile_!;
         
         // ToDo : Check
         //fse.mkdirpSync(this.pkgDir);
@@ -349,15 +352,15 @@ export class CppPrjSup {
         let profile = profile_!;
             
         await this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile);
-        fse.mkdirpSync(this.pkgDir);
+        fse.mkdirpSync(this.deployDir);
         let packageName = await this.getPackageName();
         let packageVersion = await this.getPackageVersion();
-        let packageDir = path.join(this.pkgDir,packageName);
+        let packageDir = path.join(this.deployDir,packageName);
         if (fse.pathExistsSync(packageDir)) {
             fse.removeSync(packageDir);
         }
-        this.conan.deployTool(packageName,packageVersion,this.pkgDir);   
-        this.log.showHint(`Package deployed at ${this.pkgDir}`);
+        this.conan.deployTool(packageName,packageVersion,this.deployDir);   
+        this.log.showHint(`Package deployed at ${this.deployDir}`);
     }
 
     public async createMetrix(

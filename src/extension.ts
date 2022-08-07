@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 	config.buildDir 	= vscode.workspace.getConfiguration().get('conf.cps.buildDir')!;
 	config.metrixppFile = vscode.workspace.getConfiguration().get('conf.cps.metrixpp_file')!;
 	config.doxygenFile 	= vscode.workspace.getConfiguration().get('conf.cps.doxygen_file')!;
-	config.pkgDir 		= vscode.workspace.getConfiguration().get('conf.cps.pkgDir')!;
+	config.deployDir    = vscode.workspace.getConfiguration().get('conf.cps.deployDir')!;
 	
 	let cps = new CppPrjSup(new VSCodeCenter(),codePath, workspaceRoot!,config);
 

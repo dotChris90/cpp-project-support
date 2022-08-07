@@ -62,9 +62,9 @@
             "default" : "doxygen.conf",
             "description": "location of doxygen.conf file (relative to project root)"
           },
-          "conf.cps.pkgDir" : {
+          "conf.cps.deployDir" : {
             "type" : "string",
-            "default" : "pkg",
+            "default" : "deploy",
             "description": "location of deployed package directory (relative to project root)"
           }
         }
