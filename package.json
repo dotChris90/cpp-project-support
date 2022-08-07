@@ -95,10 +95,6 @@
     },
     "commands": [
       {
-        "command": "cps.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "cps.newPrj",
         "title": "CPS - New Project"
       },
