@@ -32,9 +32,16 @@ The default way is :
 - commands : "CPS - Import default template" + "CPS - New Project"
 - look : ![new project](resources/gifs/newPrj.gif)
 
-2) import packages (especially header files)
+2) import packages (including header files)
 - command : "CPS - Import depending packages" 
 - look : ![new project](resources/gifs/newPrj.gif)
 
+3) install packages and build (cppcheck to detect errors before)
+- commands : "CPS - Install Packages" + "CPS - Build project"
+- look : ![new project](resources/gifs/build.gif)
+
+4) create package and test (choose Debug build type for "walking" through your tests)
+- command : "CPS -  Create Package and Test"
+- look : ![new project](resources/gifs/test.gif)
 
 P.S. Until I have a proper logo - i use the Iso C++ Logo

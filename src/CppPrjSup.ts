@@ -207,12 +207,13 @@ export class CppPrjSup {
         if (profile === "") {
             let profiles = await this.conan.getProfiles();
             let profile_ = await this.log.pickFromList("Choose Profile",profiles);
-            profile = profile_!;
+            profile     = (profile_ === undefined ) ? "default" : profile_!;
         }
         if (buildType === "") {
             let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
-            buildType = buildType_!;
+            buildType   = (buildType_ === undefined) ? "Release" : buildType_!;
         }
+        
         // ToDo : Check
         //fse.mkdirpSync(this.conanBuildDir);
         //fse.removeSync(this.conanBuildDir);
