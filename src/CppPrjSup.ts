@@ -103,80 +103,109 @@ export class CppPrjSup {
             "default"
         );
 
-        let exec = new Executor(msg);
-        this.conan = new Conan(exec);
-        this.metrixpp = new Metrixpp(exec);
-        
-        fse.mkdirpSync(this.toolDir);
-        //CMake
-        this.installCmakeIfNotPresent();
-        if (commandExists.sync("cmake") ) {
-            this.cmake = new CMake(exec,"cmake"); 
-        }
-        else {
-            this.cmake = new CMake(exec,this.cmakeBin);
-        }
-        // Cppcheck
-        this.installCppCheckIfNotPresent();
-        if (commandExists.sync("cppcheck")) {
-            this.cppcheck = new CppCheck(exec,"cppcheck");
-        }
-        else {
-            this.cppcheck = new CppCheck(exec,this.cppcheckBin);
-        }
-        // Doxygen
-        this.installDoxyGenIfNotPresent();
-        if (commandExists.sync("doxygen")) {
-            this.doxygen = new Doxygen(exec,"doxygen");
-        }
-        else {
-            this.doxygen = new Doxygen(exec,this.doxygenBin);
-        }
-        // Dot
-        this.dot = new Dot(exec,"dot");
+        this.log.showHint("CPS check presents of tools and install local if not present");
 
+        if (this.isPIP3Present()) {
+            let exec = new Executor(msg);
+            this.conan = new Conan(exec);
+            this.metrixpp = new Metrixpp(exec);
+            
+            fse.mkdirpSync(this.toolDir);
+            //CMake
+            this.installCmakeIfNotPresent();
+            if (commandExists.sync("cmake") ) {
+                this.cmake = new CMake(exec,"cmake"); 
+            }
+            else {
+                this.cmake = new CMake(exec,this.cmakeBin);
+            }
+            // Cppcheck
+            this.installCppCheckIfNotPresent();
+            if (commandExists.sync("cppcheck")) {
+                this.cppcheck = new CppCheck(exec,"cppcheck");
+            }
+            else {
+                this.cppcheck = new CppCheck(exec,this.cppcheckBin);
+            }
+            // Doxygen
+            this.installDoxyGenIfNotPresent();
+            if (commandExists.sync("doxygen")) {
+                this.doxygen = new Doxygen(exec,"doxygen");
+            }
+            else {
+                this.doxygen = new Doxygen(exec,this.doxygenBin);
+            }
+            // Dot
+            this.dot = new Dot(exec,"dot");
+        }
+        else {
+            this.log.showError("command - pip3 not found - please install python3 and pip3");
+            throw new Error("pip3 missing ...");
+        }
     }   
+
+    private isPIP3Present() {
+        return commandExists.sync("pip3");
+    }
 
     private async installCmakeIfNotPresent() {
         if (!commandExists.sync("cmake") || !fse.pathExistsSync(this.cmakePath)) {
-            this.log.showHint('install local cmake');
+            if (!await this.conan.packageIsLocalPresent("cmake/3.23.1")) {
+                this.log.showHint("cmake is not globally present and not in conan cache...that will take some time.")    
+            }
+            this.log.showHint(`install local cmake - see ${this.cmakeBin}`);
             await this.conan.deployTool('cmake','3.23.1',this.toolDir);
         }
     }
     private async installCppCheckIfNotPresent() {
         if (!commandExists.sync("cppcheck") || !fse.pathExistsSync(this.cppcheckPath)) {
-            this.log.showHint('install local cppcheck');
+            if (!await this.conan.packageIsLocalPresent("cppcheck/2.7.5")) {
+                this.log.showHint("cppcheck is not globally present and not in conan cache...that will take some time.")    
+            }
+            this.log.showHint(`install local cppcheck - see ${this.cppcheckBin}`);
             await this.conan.deployTool('cppcheck','2.7.5',this.toolDir);
         }
     }
     private async installDoxyGenIfNotPresent() {
         if (!commandExists.sync("doxygen") || !fse.pathExistsSync(this.doxygenPath)) {
-            this.log.showHint('install local doxygen');
+            if (!await this.conan.packageIsLocalPresent("doxygen/1.9.1")) {
+                this.log.showHint("doxygen is not globally present and not in conan cache...that will take some time.")    
+            }
+            this.log.showHint(`install local doxygen - see ${this.doxygenBin}`);
             await this.conan.deployTool('doxygen','1.9.1',this.toolDir);
         }
     }
 
-    public newPrj() {
+    public async newPrj() {
+        let templates = await this.conan.getTemplates();
+        let template = "default"
+        if (templates.includes("default")) {
+            // nothing to do 
+        }
+        else {
+            let template_ = await this.log.pickFromList("Choose a template to start",templates);
+            template = (template_ === undefined) ? "default" : template_!;
+        } 
         this.log.askInput("Enter name/version for package","default/0.1.0").then(packageName => {
             let name = packageName?.split("/")[0]!;
             let version = packageName?.split("/")[1]!;
-            return this.conan.createNewProject(name,version,"default",this.prjRoot);
+            return this.conan.createNewProject(name,version,template,this.prjRoot);
         }).then( () => {
             this.log.showHint("Project created.");
-        }); 
+        });
     }
 
     public async importPackages(
     ) {
         this.log.clear();
-        
-        let buildType_  = await this.log.pickFromList("Choose build type",["Debug","Release"]);
-        let buildType   = (buildType_ === undefined) ? "Release" : buildType_!;
     
         let profiles    = await this.conan.getProfiles();
         let profile_    = await this.log.pickFromList("Choose a profile",profiles);
         let profile     = (profile_ === undefined ) ? "default" : profile_!;
-        
+    
+        let buildType_  = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+        let buildType   = (buildType_ === undefined) ? "Release" : buildType_!;
+    
         // ToDo : Check
         //fse.mkdirpSync(this.pkgDir);
         //fse.removeSync(this.pkgDir);
@@ -244,7 +273,7 @@ export class CppPrjSup {
         await this.cppcheck.generateReportText(this.srcRoot,this.cppReportFile,this.buildDir);
         let hasError = await this.reportHasError();
         if (hasError) {
-            this.log.showHint(`oh oh build failed - your project has an error - check ${this.cppReportFile}`);
+            this.log.showError(`oh oh build failed - your project has an error - check ${this.cppReportFile}`);
             this.log.showTxt(this.cppReportFile);
         }
         else {
@@ -276,7 +305,7 @@ export class CppPrjSup {
         await this.cppcheck.generateReportText(this.srcRoot,this.cppReportFile,this.buildDir);
         let hasError = await this.reportHasError();
         if (hasError) {
-            this.log.showHint(`oh oh - your project has an error - check ${this.cppReportFile}`);
+            this.log.showError(`oh oh - your project has an error - check ${this.cppReportFile}`);
         }
         else {
             this.log.showHint('All good!');
@@ -346,22 +375,25 @@ export class CppPrjSup {
         
         ) {
 
-        let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
-        let buildType = buildType_!;
         let profiles = await this.conan.getProfiles();
         let profile_ = await this.log.pickFromList("Choose a profile",profiles);
         let profile = profile_!;
+
+        let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);
+        let buildType = buildType_!;
             
         await this.conan.createPackage(profile, "default", buildType,this.buildDir,this.conanFile);
         fse.mkdirpSync(this.deployDir);
         let packageName = await this.getPackageName();
         let packageVersion = await this.getPackageVersion();
-        let packageDir = path.join(this.deployDir,packageName);
+        let deployDir = path.join(this.deployDir,`${profile}-${buildType}`);
+        fse.mkdirpSync(deployDir);
+        let packageDir = path.join(deployDir,packageName);
         if (fse.pathExistsSync(packageDir)) {
             fse.removeSync(packageDir);
         }
-        this.conan.deployTool(packageName,packageVersion,this.deployDir);   
-        this.log.showHint(`Package deployed at ${this.deployDir}`);
+        this.conan.deployTool(packageName,packageVersion,deployDir);   
+        this.log.showHint(`Package deployed at ${deployDir}`);
     }
 
     public async createMetrix(
@@ -389,6 +421,7 @@ export class CppPrjSup {
     public async importDefaultTemplate(
 
     ) {
+        fse.mkdirpSync(path.dirname(this.conanDefaultTemplatePath));
         if (this.conanDefaultTemplateExists()) {
             let overwrite_ = await this.log.pickFromList("Overwrite default template?",["yes","no"]);
             let overwrite = (overwrite_ === undefined) ? "yes" : overwrite_!;

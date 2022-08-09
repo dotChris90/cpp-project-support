@@ -281,5 +281,28 @@ export class Conan {
         let version = version_[0].substring(9);
         return `${version}`;
     }
+    public async getTemplates(
 
+    ) {
+        let templateDir = path.join(
+                os.homedir(),
+                ".conan",
+                "templates",
+                "command",
+                "new"
+        );
+        return fse.readdirSync(templateDir);
+    }
+
+    public async packageIsLocalPresent(
+        packageName : string
+    ) {
+        let cmd = "conan";
+        let args = [
+            "search",
+            `${packageName}`
+        ];
+        let anwser = (await this.exec.execWithResult(cmd,args)).join("\n");
+        return !(anwser.startsWith("There are no packages matching the"));
+    }
 }
