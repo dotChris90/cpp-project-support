@@ -34,7 +34,7 @@ The default way is :
 
 2) import packages (including header files)
 - command : "CPS - Import depending packages" 
-- look : ![new project](resources/gifs/newPrj.gif)
+- look : ![new project](resources/gifs/imortPkg.gif)
 
 3) install packages and build (cppcheck to detect errors before)
 - commands : "CPS - Install Packages" + "CPS - Build project"
