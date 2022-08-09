@@ -7,7 +7,7 @@ import {CppPrjSup} from './CppPrjSup';
 import {VSCodeCenter} from './VSCodeCenter';
 import {Config} from './Config';
 
-import { TreeDataProvider } from './CPSCenter/TreeDataProvider';
+//import { TreeDataProvider } from './CPSCenter/TreeDataProvider';
 
 function getWorkSpace() : string {
 	return (vscode.workspace.workspaceFolders && (vscode.workspace.workspaceFolders.length > 0))
