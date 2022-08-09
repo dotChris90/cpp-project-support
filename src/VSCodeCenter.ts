@@ -29,10 +29,24 @@ export class VSCodeCenter implements IMsgCenter {
 			placeHolder: placeHolder
 		});
     }
-    pickFromList(question: string, list: string[]): Thenable<string | undefined> {
-		return vscode.window.showQuickPick(list, {
-			placeHolder: question
-		});
+    // ToDo :   find out why sometimes return type of showQuickPick is undefined .... 
+    //          and so not need for this walk around
+    async pickFromList(question: string, list: string[]): Promise<string | undefined> {
+		let anwserGiven = false;
+        let anwser = "";
+        while (anwserGiven == false) {
+            let anwser_ = await vscode.window.showQuickPick(list, {
+                placeHolder: question
+            });
+            if (anwser_ === undefined) {
+                // pass 
+            }
+            else {
+                anwserGiven = true;
+                anwser = anwser_!;
+            }
+        }
+        return anwser;
     }
     showSVG(uri: string): void {
         vscode.commands.executeCommand('_svg.showSvgByUri', vscode.Uri.parse(uri));
@@ -42,5 +56,8 @@ export class VSCodeCenter implements IMsgCenter {
     }
     showTxt(uri: string): void {
         vscode.commands.executeCommand('vscode.open',vscode.Uri.parse(uri));
+    }
+    showError(text: string): void {
+        vscode.window.showErrorMessage(text);
     }
 }
