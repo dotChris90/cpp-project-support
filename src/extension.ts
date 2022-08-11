@@ -45,6 +45,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.doxygen', 			() => { cps.createDocumentation();  });
 	vscode.commands.registerCommand('cps.importTemplate', 	() => { cps.importDefaultTemplate();  });
 	vscode.commands.registerCommand('cps.inspect', 			() => { cps.inspectAllPkgOptions();  });
+	vscode.commands.registerCommand('cps.installCPSTools', 	() => { cps.installToolsIfNotPresent();  });
+	
 	// ToDo : better format and add command to package.json
 	//vscode.commands.registerCommand('cps.cppcheckHtml', 	() => { cps.generateCppCheckHtmlReport();  });
 	

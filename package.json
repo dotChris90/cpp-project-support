@@ -32,7 +32,8 @@
     "onCommand:cps.metrix",
     "onCommand:cps.doxygen",
     "onCommand:cps.importTemplate",
-    "onCommand:cps.inspect"
+    "onCommand:cps.inspect",
+    "onCommand:cps.installCPSTools"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -161,6 +162,10 @@
       {
         "command": "cps.inspect",
         "title": "CPS - inspect project and dependencies"
+      },
+      {
+        "command": "cps.installCPSTools",
+        "title": "CPS - import CPS tools"
       }
     ],
     "menus": {

@@ -12,6 +12,8 @@ import {CppCheck} from './CppCheck';
 import {Metrixpp} from './Metrixpp';
 import {Config} from './Config';
 import {Doxygen} from './Doxygen';
+import { urlToHttpOptions } from 'url';
+import { timeStamp } from 'console';
 
 export class CppPrjSup {
 
@@ -106,12 +108,33 @@ export class CppPrjSup {
         this.log.showHint("CPS check presents of tools and install local if not present");
 
         if (this.isPIP3Present()) {
-            let exec = new Executor(msg);
-            this.conan = new Conan(exec);
-            this.metrixpp = new Metrixpp(exec);
-            
-            fse.mkdirpSync(this.toolDir);
-            //CMake
+            // ToDo : Find a way to avoid init tools with dummy
+            let exec        = new Executor(msg);
+            this.conan      = new Conan(exec);
+            this.metrixpp   = new Metrixpp(exec);   
+            this.cmake      = new CMake(exec,"");
+            this.cppcheck   = new CppCheck(exec,"");
+            this.doxygen    = new Doxygen(exec,"");
+            this.dot        = new Dot(exec,"");
+
+            this.installToolsIfNotPresent();
+        }
+        else {
+            this.log.showError("command - pip3 not found - please install python3 and pip3");
+            throw new Error("pip3 missing ...");
+        }
+    }   
+
+    public async installToolsIfNotPresent() {
+        
+        let exec = new Executor(this.log);
+        // conan installation in constructor
+        this.conan = new Conan(exec);
+        // metrixpp installation in constructor
+        this.metrixpp = new Metrixpp(exec);    
+        fse.mkdirpSync(this.toolDir);
+        //CMake
+        try {
             this.installCmakeIfNotPresent();
             if (commandExists.sync("cmake") ) {
                 this.cmake = new CMake(exec,"cmake"); 
@@ -119,30 +142,50 @@ export class CppPrjSup {
             else {
                 this.cmake = new CMake(exec,this.cmakeBin);
             }
-            // Cppcheck
+        } catch(error ) {
+            this.log.showError("Error when install cmake - please install manual");
+            this.cmake = new CMake(exec,"");
+        }
+        //Cppcheck
+        try {
             this.installCppCheckIfNotPresent();
-            if (commandExists.sync("cppcheck")) {
-                this.cppcheck = new CppCheck(exec,"cppcheck");
+            if (commandExists.sync("cppcheck") ) {
+                this.cppcheck = new CppCheck(exec,"cppcheck"); 
             }
             else {
                 this.cppcheck = new CppCheck(exec,this.cppcheckBin);
             }
-            // Doxygen
+        } catch(error ) {
+            this.log.showError("Error when install cppcheck - please install manual");
+            this.cppcheck = new CppCheck(exec,"");
+        }
+        //Doxygen
+        try {
             this.installDoxyGenIfNotPresent();
-            if (commandExists.sync("doxygen")) {
-                this.doxygen = new Doxygen(exec,"doxygen");
+            if (commandExists.sync("doxygen") ) {
+                this.doxygen = new Doxygen(exec,"doxygen"); 
             }
             else {
                 this.doxygen = new Doxygen(exec,this.doxygenBin);
             }
-            // Dot
-            this.dot = new Dot(exec,"dot");
+        } catch(error ) {
+            this.log.showError("Error when install doxygen - please install manual");
+            this.doxygen = new Doxygen(exec,"");
         }
-        else {
-            this.log.showError("command - pip3 not found - please install python3 and pip3");
-            throw new Error("pip3 missing ...");
+        // Dot
+        try {
+            if (commandExists.sync("dot")) {
+                this.dot = new Dot(exec,"dot");
+            }
+            else {
+                throw Error("dot not present");
+            }
         }
-    }   
+        catch (error) {
+            this.log.showError("Error when install dot - please install manual");
+            this.dot = new Dot(exec,"");   
+        }
+    }
 
     private isPIP3Present() {
         return commandExists.sync("pip3");
@@ -154,7 +197,7 @@ export class CppPrjSup {
                 this.log.showHint("cmake is not globally present and not in conan cache...that will take some time.")    
             }
             this.log.showHint(`install local cmake - see ${this.cmakeBin}`);
-            await this.conan.deployTool('cmake','3.23.1',this.toolDir);
+            this.conan.deployTool('cmake','3.23.1',this.toolDir);
         }
     }
     private async installCppCheckIfNotPresent() {
@@ -163,7 +206,7 @@ export class CppPrjSup {
                 this.log.showHint("cppcheck is not globally present and not in conan cache...that will take some time.")    
             }
             this.log.showHint(`install local cppcheck - see ${this.cppcheckBin}`);
-            await this.conan.deployTool('cppcheck','2.7.5',this.toolDir);
+            this.conan.deployTool('cppcheck','2.7.5',this.toolDir);
         }
     }
     private async installDoxyGenIfNotPresent() {
@@ -172,7 +215,7 @@ export class CppPrjSup {
                 this.log.showHint("doxygen is not globally present and not in conan cache...that will take some time.")    
             }
             this.log.showHint(`install local doxygen - see ${this.doxygenBin}`);
-            await this.conan.deployTool('doxygen','1.9.1',this.toolDir);
+            this.conan.deployTool('doxygen','1.9.1',this.toolDir);
         }
     }
 
