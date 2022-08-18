@@ -17,8 +17,8 @@ jobs:
       - run: npm i 
       - run: npm run compile
       - run: npm run test 
-      vsce-on-Ubuntu:
-  name: Run npm on Fedora
+  vsce-on-Fedora:
+    name: Run npm on Fedora
     runs-on: fedora-latest
     steps:
       - uses: actions/checkout@v3
