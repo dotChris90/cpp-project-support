@@ -12,6 +12,7 @@ import {CppCheck} from './CppCheck';
 import {Metrixpp} from './Metrixpp';
 import {Config} from './Config';
 import {Doxygen} from './Doxygen';
+import {CodeGenerator} from './CodeGenerator';
 import { urlToHttpOptions } from 'url';
 import { timeStamp } from 'console';
 
@@ -55,6 +56,7 @@ export class CppPrjSup {
     private doxygenConfig : string;
     private inspectAllFile : string;
     private conanDefaultTemplatePath : string;
+    private codeGen : CodeGenerator;
 
     constructor(
         msg: IMsgCenter,
@@ -104,6 +106,7 @@ export class CppPrjSup {
             "new",
             "default"
         );
+        this.codeGen = new CodeGenerator(cppCodeDir);
 
         this.log.showHint("CPS check presents of tools and install local if not present");
 
@@ -497,5 +500,36 @@ export class CppPrjSup {
         inspectResult.forEach((v) => { file.write(v + '\n'); });
         file.end();
         this.log.showTxt(this.inspectAllFile);
+    }
+    public async generateInterface() {
+        this.log.clear();
+        let fullClassName_ = await this.log.askInput("Enter interface class name","A::B::C::ClassName");
+        let fullClassName = fullClassName_!;
+        let splitted = fullClassName?.split("::");
+        let className = splitted[splitted?.length-1];
+        let filePath = path.join(this.srcRoot,splitted.join(path.sep)) + ".hpp";
+        splitted.splice(splitted?.length-1,1);
+        let namespace = splitted.join("::");
+        this.codeGen.generateInterface(
+            namespace,
+            className,
+            filePath
+        );
+
+        let fullImpClassName_ = await this.log.askInput("Enter interface class name","A::B::C::ClassName");
+        let fullImpClassName = fullImpClassName_!;
+        let splittedImp = fullImpClassName?.split("::");
+        let classImpName = splittedImp[splittedImp?.length-1];
+        let fileImpPath = path.join(this.srcRoot,splittedImp.join(path.sep)) + ".hpp";
+        splittedImp.splice(splittedImp?.length-1,1);
+        let namespaceImp = splittedImp.join("::");
+        splitted.push(className);
+        this.codeGen.generateInterfaceImplementation(
+            namespaceImp,
+            classImpName,
+            fileImpPath,
+            namespace + "::" + className,
+            splitted.join('/') + '.hpp'
+        );
     }
 }

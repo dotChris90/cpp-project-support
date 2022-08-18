@@ -1,10 +1,20 @@
-import {IMsgCenter} from './IMsgCenter';
 import * as vscode from 'vscode';
+import {IMsgCenter} from '../../IMsgCenter';
 
-export class VSCodeCenter implements IMsgCenter {
+export class VSCodeFakeCenter implements IMsgCenter {
+    private mappingInput: Map<string,string>;
+    private mappingPick : Map<string,string>;
     private terminal: vscode.OutputChannel;
     constructor() {
+        this.mappingInput = new Map<string,string>();
+        this.mappingPick = new Map<string,string>();
         this.terminal = vscode.window.createOutputChannel("CPS");
+    }
+    setInput(question : string, anwser : string) {
+        this.mappingInput.set(question,anwser);
+    }
+    setPick(question : string, anwser : string) {
+        this.mappingPick.set(question,anwser);
     }
     writeOut(text: string): void {
         this.terminal.append(text + "\n");
@@ -23,42 +33,12 @@ export class VSCodeCenter implements IMsgCenter {
         vscode.window.showInformationMessage(text);   
     }
     async askInput(question: string, placeHolder: string) {
-        let anwserGiven = false;
-        let anwser = "";
-        while (anwserGiven == false) {
-            let anwser_ = await vscode.window.showInputBox({
-                value: placeHolder,
-                prompt: question,
-                placeHolder: placeHolder
-            });
-            if (anwser_ === undefined) {
-                // pass 
-            }
-            else {
-                anwserGiven = true;
-                anwser = anwser_!;
-            }
-        }
-        return anwser;
+        return this.mappingInput.get(question);
     }
     // ToDo :   find out why sometimes return type of showQuickPick is undefined .... 
     //          and so not need for this walk around
     async pickFromList(question: string, list: string[]): Promise<string | undefined> {
-		let anwserGiven = false;
-        let anwser = "";
-        while (anwserGiven == false) {
-            let anwser_ = await vscode.window.showQuickPick(list, {
-                placeHolder: question
-            });
-            if (anwser_ === undefined) {
-                // pass 
-            }
-            else {
-                anwserGiven = true;
-                anwser = anwser_!;
-            }
-        }
-        return anwser;
+		return this.mappingPick.get(question);
     }
     showSVG(uri: string): void {
         vscode.commands.executeCommand('_svg.showSvgByUri', vscode.Uri.parse(uri));
