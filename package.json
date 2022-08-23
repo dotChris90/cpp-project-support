@@ -16,7 +16,6 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:cps.helloWorld",
 		"onCommand:cps.newPrj",
 		"onCommand:cps.importPkg",
 		"onCommand:cps.install",
@@ -98,31 +97,27 @@
 		"commands": [
 			{
 				"command": "cps.newPrj",
-				"title": "CPS - New Project"
+				"title": "CPS - 1 - New Project"
 			},
 			{
 				"command": "cps.importPkg",
-				"title": "CPS - Import depending Packages"
+				"title": "CPS - 2 - Import depending Packages"
 			},
 			{
 				"command": "cps.install",
-				"title": "CPS - Install Packages"
+				"title": "CPS - 3 - Install Packages"
 			},
 			{
 				"command": "cps.build",
-				"title": "CPS - Build project"
-			},
-			{
-				"command": "cps.installPick",
-				"title": "CPS - Install packages with profile"
+				"title": "CPS - 4 - Build project"
 			},
 			{
 				"command": "cps.packageTree",
-				"title": "CPS - Generate Package Tree"
+				"title": "CPS - x - Generate Package Tree"
 			},
 			{
 				"command": "cps.targetTree",
-				"title": "CPS - Generate Target Tree"
+				"title": "CPS - x - Generate Target Tree"
 			},
 			{
 				"command": "cps.req",
@@ -130,31 +125,31 @@
 			},
 			{
 				"command": "cps.clean",
-				"title": "CPS - Clean build dir"
+				"title": "CPS - 7 - Clean build dir"
 			},
 			{
 				"command": "cps.importTemplate",
-				"title": "CPS - Import default template"
+				"title": "CPS - 0 - Import default template"
 			},
 			{
 				"command": "cps.doxygen",
-				"title": "CPS - Create Doxygen Doc"
+				"title": "CPS - x - Create Doxygen Doc"
 			},
 			{
 				"command": "cps.cppcheckText",
-				"title": "CPS - Check C++ Files and generate txt report"
+				"title": "CPS - x - Check C++ Files and generate txt report"
 			},
 			{
 				"command": "cps.metrix",
-				"title": "CPS - Create Metrix"
+				"title": "CPS - x - Create Metrix"
 			},
 			{
 				"command": "cps.deploy",
-				"title": "CPS - Deploy Package"
+				"title": "CPS - 6 - Deploy Package"
 			},
 			{
 				"command": "cps.create",
-				"title": "CPS - Create Package and Test"
+				"title": "CPS - 5 - Create Package and Test"
 			},
 			{
 				"command": "cps.center.installdefault",
@@ -162,29 +157,85 @@
 			},
 			{
 				"command": "cps.inspect",
-				"title": "CPS - inspect project and dependencies"
+				"title": "CPS - x - inspect project and dependencies"
 			},
 			{
 				"command": "cps.installCPSTools",
-				"title": "CPS - import CPS tools"
+				"title": "CPS - x - import CPS tools"
 			},
 			{
 				"command": "cps.generateInterface",
-				"title": "CPS - generate Interface Class"
+				"title": "CPS - x - generate Interface Class"
 			}
 		],
 		"menus": {
-			"view/item/context": [
+			"explorer/context" : [
 				{
-					"command": "cps.center.installdefault",
-					"when": "view == buildAndPack && viewItem == install"
+					"submenu": "cps",
+					"group": "z_commands"
+				}
+			],
+			"cps" : [
+				{
+					"command": "cps.newPrj",
+					"group": "navigation"
 				},
 				{
 					"command": "cps.importPkg",
-					"when": "view == buildAndPack && viewItem == install"
+					"group": "navigation"
+				},
+				{
+					"command": "cps.install",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.build",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.packageTree",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.doxygen",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.metrix",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.clean",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.targetTree",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.create",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.inspect",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.deploy",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.importTemplate",
+					"group": "navigation"
 				}
 			]
-		}
+		},
+		"submenus": [
+			{
+				"id": "cps",
+				"label": "CPS"
+			}
+		]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
