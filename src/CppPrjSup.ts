@@ -131,10 +131,13 @@ export class CppPrjSup {
     public async installToolsIfNotPresent() {
         
         let exec = new Executor(this.log);
-        // conan installation in constructor
+        // Conan 
+        this.installConanIfNotPresent(exec);
         this.conan = new Conan(exec);
-        // metrixpp installation in constructor
-        this.metrixpp = new Metrixpp(exec);    
+        // metrixpp
+        this.installMetrixppIfNotPresent(exec);
+        this.metrixpp = new Metrixpp(exec);
+
         fse.mkdirpSync(this.toolDir);
         //CMake
         try {
@@ -192,6 +195,30 @@ export class CppPrjSup {
 
     private isPIP3Present() {
         return commandExists.sync("pip3");
+    }
+
+    private async installConanIfNotPresent(exec : Executor) {
+        if (!commandExists.sync("conan") ) {
+            let cmd = "pip3";
+            let args = [
+                "install",
+                "conan"
+            ];
+            await exec.exec(cmd,args);
+            this.log.showHint(`install conan with pip3`);
+        }
+    }
+
+    private async installMetrixppIfNotPresent(exec : Executor) {
+        if (!commandExists.sync("metrixpp") ) {
+            let cmd = "pip3";
+            let args = [
+                "install",
+                "metrixpp"
+            ];
+            await exec.exec(cmd,args);
+            this.log.showHint(`install metrixpp with pip3`);
+        }
     }
 
     private async installCmakeIfNotPresent() {
@@ -422,7 +449,7 @@ export class CppPrjSup {
         ) {
 
         let profiles = await this.conan.getProfiles();
-        let profile_ = await this.log.pickFromList("Choose a profile",profiles);
+        let profile_ = await this.log.pickFromList("Choose Profile",profiles);
         let profile = profile_!;
 
         let buildType_ = await this.log.pickFromList("Choose build type",["Debug","Release"]);

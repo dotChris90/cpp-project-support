@@ -17,7 +17,8 @@ export class CMake {
         cmakeFile: string) {
         let buildDir = path.dirname(cmakeFile).concat('.build');
         fse.mkdirpSync(buildDir);
-        let opts = this.exec.execPromise(
+        // To Do : Check if this is correct
+        let opts = this.exec.execWithResult(
             this.cmakeBin, 
             ['..'],
             buildDir).then(x => {
@@ -41,7 +42,7 @@ export class CMake {
             `-DCMAKE_BUILD_TYPE=${buildType}`,
             `${path.dirname(cmakeFiles)}`
         ];
-        return this.exec.execPromise(cmd, args,workDir);
+        return this.exec.exec(cmd, args,workDir);
         // cmake --toolchain=/tmp/abc/build/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
     }
     public async generateDot(
@@ -55,7 +56,7 @@ export class CMake {
             `${path.dirname(cmakeFiles)}`,
             `--graphviz=${dstDotFile}`
         ];
-        return this.exec.execPromise(cmd, args,workDir);
+        return this.exec.exec(cmd, args,workDir);
         // cmake -S .. --graphviz=graph.dot
     }
     

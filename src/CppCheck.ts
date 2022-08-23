@@ -1,6 +1,5 @@
 // cppcheck --force --enable=all --output-file=report.txt ../src/
 import {Executor} from './Executor';
-import * as fse from 'fs-extra';
 
 export class CppCheck {
     private exec : Executor;
@@ -26,7 +25,7 @@ export class CppCheck {
             `--output-file=${reportFile}`,
             `${sourceDir}`
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
     public convertXML2HTml(
         sourceDir : string,
@@ -41,7 +40,7 @@ export class CppCheck {
             `--file=${xmlReportFile}`,
             `--report-dir=${outDst}`
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
     public generateReportText(
         sourceDir : string,
@@ -55,7 +54,7 @@ export class CppCheck {
             `--output-file=${reportFile}`,
             `${sourceDir}`
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
 
     public async srcDirHasError(
@@ -68,7 +67,6 @@ export class CppCheck {
             `${sourceDir}`
         ];
         let buffer = this.exec.execSync(cmd,args);
-    
         if (buffer.stderr.toString() === "") {
             return false;
         }

@@ -7,6 +7,7 @@ export class Executor {
   constructor(log: IMsgCenter) {
     this.log = log;
   }
+  // required since some classes like cppcheck need the output for error check
   public execSync(command : string, args : string[] ) {
     return spawnSync(command,args);
   }
@@ -25,6 +26,7 @@ export class Executor {
     let bufferPromise: Promise<string[]> = new Promise((resolve, reject) => resolve(bufferSplitted));
     return bufferPromise;
   }
+  /*
   public execWithResultSync(command: string, args: string[] = [""], workingDir: string = "", options: any = {}) : string[] {
     workingDir = workingDir === "" ? process.cwd() : workingDir;
     options['cwd'] = workingDir;
@@ -39,7 +41,8 @@ export class Executor {
       .filter(text => text !== '');
     return bufferSplitted;
   }
-  public execPromise(command: string, args: string[], workingDir: string = "", options: any = {}) : Promise<any> {
+  */
+  public exec(command: string, args: string[], workingDir: string = "", options: any = {}) : Promise<any> {
     workingDir = workingDir === "" ? process.cwd() : workingDir;
     return new Promise((resolve, reject) => {
       options['cwd'] = workingDir;
@@ -61,6 +64,7 @@ export class Executor {
       });
     });
   }
+  /*
   public writeOut(text : string) {
     this.log.writeOut(text);
   }
@@ -70,4 +74,5 @@ export class Executor {
   public writeWarn(text : string) {
     this.log.writeWarn(text);
   }
+  */
 }

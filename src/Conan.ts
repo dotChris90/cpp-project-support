@@ -9,12 +9,6 @@ export class Conan {
         exec : Executor
     ) {
         this.exec = exec;
-        let cmd = "pip3";
-        let args = [
-            "install",
-            "conan"
-        ];
-        this.exec.execSync(cmd,args);
     }
     public createNewProject(
         projectName: string,
@@ -29,16 +23,16 @@ export class Conan {
             "-m",
             templateName
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
-    public getProfiles() {
+    public async getProfiles() {
         let cmd = "conan";
         let args = [
             "profile",
             `list`,
         ];
-        return this.exec.execWithResult(cmd, args).then(x => x.filter(text => text !== 'default'))
-                                                  .then(x => ["default"].concat(x));
+        let profiles = await this.exec.execWithResult(cmd, args);
+        return (["default"].concat(profiles.filter(text => text !== 'default')));
     }
     public async getProjectPackagesRecursive(
         projectRoot : string
@@ -51,7 +45,7 @@ export class Conan {
             "-g",
             `${package_dot}`
         ];
-        await this.exec.execPromise(cmd,args);
+        await this.exec.exec(cmd,args);
         let diagraph = fse.readFileSync(package_dot).toString().split("\n");
         fse.removeSync(package_dot);
         diagraph.splice(0,1);
@@ -83,7 +77,7 @@ export class Conan {
             "-g",
             `${dstFile}.dot`
         ];
-        return this.exec.execPromise(cmd, args);
+        return this.exec.exec(cmd, args);
     }
     public installDeps(
         buildProfile: string,
@@ -100,7 +94,7 @@ export class Conan {
             conanfile,
             '--build=missing'
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
     public deployDeps(
         buildProfile: string,
@@ -119,7 +113,7 @@ export class Conan {
             conanfile,
             '--build=missing'
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
     public deployTool(
         toolName: string,
@@ -133,7 +127,7 @@ export class Conan {
             `${toolName}/${version}@_/_`,
             "--build=missing"
         ];
-        return this.exec.execPromise(cmd,args,dstFolder);
+        return this.exec.exec(cmd,args,dstFolder);
     }
     public buildProject(
         conanfile: string = "..", 
@@ -143,7 +137,7 @@ export class Conan {
             "build",
             conanfile
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
     public createPackage(
         buildProfile: string,
@@ -161,7 +155,7 @@ export class Conan {
             conanfile,
             '--build=missing'
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
     public async getRequirements(
         pkgName : string, 
@@ -187,7 +181,7 @@ export class Conan {
         }                        
         return packages;
     }
-    public getProjectRequirementsSync(projDir : string) {
+    public async getProjectRequirementsSync(projDir : string) {
 
         let pkgName = this.getNameSync(".",projDir);
         let version = this.getVersionSync(".",projDir);
@@ -198,7 +192,7 @@ export class Conan {
                 "-n",
                 "requires"
             ];
-        let out = this.exec.execWithResultSync(cmd,args,projDir);   
+        let out = await this.exec.execWithResult(cmd,args,projDir);   
         let pkgIdx = out.indexOf(`conanfile.py (${pkgName}/${version})`) + 2; 
         let packages = [];
         while (pkgIdx < out.length) {
@@ -218,7 +212,7 @@ export class Conan {
         ];
         return this.exec.execWithResult(cmd,args,workDir);
     }
-    public getNameSync(
+    public async getNameSync(
         conanFile : string,
         workDir : string
     ) {
@@ -229,9 +223,8 @@ export class Conan {
             "name",
             `${conanFile}`,
         ];
-        let name_ = this.exec.execWithResultSync(cmd, args, workDir);
+        let name_ = await this.exec.execWithResult(cmd, args, workDir);
         let name = name_[0].substring(6);
-
         return `${name}`;
     }
     public async getName(
@@ -247,11 +240,10 @@ export class Conan {
         ];
         let name_ = await this.exec.execWithResult(cmd, args, workDir);
         let name = name_[0].substring(6);
-
         return `${name}`;
     }
 
-    public getVersionSync(
+    public async getVersionSync(
         conanFile : string,
         workDir : string
     ) {
@@ -262,7 +254,7 @@ export class Conan {
             "version",
             `${conanFile}`,
         ];
-        let version_ = this.exec.execWithResultSync(cmd, args, workDir);
+        let version_ = await this.exec.execWithResult(cmd, args, workDir);
         let version = version_[0].substring(9);
         return `${version}`;
     }

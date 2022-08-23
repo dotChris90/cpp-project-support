@@ -18,6 +18,6 @@ export class Doxygen {
         let args = [
             `${doxygenFile}`
         ];
-        return this.exec.execPromise(cmd, args, workDir);
+        return this.exec.exec(cmd, args, workDir);
     }
 }

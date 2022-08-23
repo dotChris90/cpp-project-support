@@ -8,12 +8,6 @@ export class Metrixpp {
     constructor(
         exec : Executor) {
         this.exec = exec;
-        let cmd = "pip3";
-        let args = [
-            "install",
-            "metrixpp"
-        ];
-        this.exec.execSync(cmd,args);
     }
     public async collect(
         configFile : string,
@@ -23,9 +17,9 @@ export class Metrixpp {
         let args = fse.readFileSync(configFile, 'utf-8').split("\n");
         args.unshift("collect");
         args.push(srcFolder);
-        this.exec.execWithResultSync(cmd,args,path.dirname(configFile));
+        await this.exec.execWithResult(cmd,args,path.dirname(configFile));
     }
-    public view(
+    public async view(
         dbFile : string,
         resultFile : string
     ) {
@@ -34,7 +28,7 @@ export class Metrixpp {
             "view"
         ];
         let dbFolder = path.dirname(dbFile);
-        let view = this.exec.execWithResultSync(cmd, args,dbFolder);
+        let view = await this.exec.execWithResult(cmd, args,dbFolder);
         if (fse.existsSync(resultFile)) {
             fse.removeSync(resultFile);
         }

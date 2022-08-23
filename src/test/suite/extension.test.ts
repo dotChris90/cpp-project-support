@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
+import * as child_process from 'child_process';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
@@ -19,7 +20,24 @@ function delay(ms: number) {
 let tmpDir = "";
 
 suite('Extension Test Suite', () => {
+	
 	// prepare : 
+	// tools : 
+	// conan install fmt/8.1.1@_/_ --build 
+
+	let packages = [
+		"fmt/8.1.1@_/_",
+		"cmake/3.23.1@_/_",
+		"cppcheck/2.7.5@_/_",
+		"ms-gsl/4.0.0@_/_",
+		"gtest/1.11.0@_/_"
+	];
+
+	for (var idx = 0; idx < packages.length; idx++) {
+		let cmd = `conan install ${packages[idx]} --build=missing`;
+		child_process.execSync(cmd);
+	}
+
 	let prjRoot = fse.mkdtempSync(path.join(os.tmpdir(), "test"));
 	tmpDir = prjRoot;
 	let code 	= path.join(__dirname,"..","..","C++Code");
@@ -38,8 +56,8 @@ suite('Extension Test Suite', () => {
 	);
 	
 	test('all', async () => {
-		cps.newPrj();
-		await delay(2000);
+		await cps.newPrj();
+		await delay(5000);
 		assert(fse.existsSync(path.join(prjRoot,"conanfile.py")));
 		await cps.importPackages();
 		assert(fse.existsSync(path.join(prjRoot,".cps","pkgs","include","fmt","format.h")));
@@ -47,6 +65,7 @@ suite('Extension Test Suite', () => {
 		assert(fse.existsSync(path.join(prjRoot,".cps","pkgs","include","gtest","gtest.h")));
 		await delay(5000);
 		await cps.installDeps();
+		await delay(5000);
 		assert(fse.existsSync(path.join(prjRoot,"build","generators","fmt-config.cmake")));
 		assert(fse.existsSync(path.join(prjRoot,"build","graph_info.json")));
 		assert(fse.existsSync(path.join(prjRoot,"build","conaninfo.txt")));
@@ -64,10 +83,28 @@ suite('Extension Test Suite', () => {
 		assert(fse.existsSync(path.join(prjRoot,"build","Release","main")));
 		await delay(5000);
 		await cps.createPackageAndTest();
-		await delay(5000);
+		await delay(10000);
 		assert(fse.existsSync(path.join(prjRoot,"test_package","build","pkg_test")));
 		await cps.deployProject();
 		await delay(5000);
+		assert(fse.existsSync(path.join(prjRoot,"deploy","default-Release","def","include","Greeter.hpp")));
+		assert(fse.existsSync(path.join(prjRoot,"deploy","default-Release","def","bin")));
+		await cps.generatePackageTree();
+		await delay(5000);
+		assert(fse.existsSync(path.join(prjRoot,".cps","package.dot")));
+		await cps.generateTargetTree();
+		await delay(5000);
+		assert(fse.existsSync(path.join(prjRoot,".cps","target.dot")));
+		await cps.inspectAllPkgOptions();
+		await delay(5000);
+		assert(fse.existsSync(path.join(prjRoot,".cps","tools","inspect.txt")));
+		cps.clean();
+		assert(!fse.existsSync(path.join(prjRoot,"build")));
+		await cps.installDeps();
+		await delay(5000);
+		await cps.build();
+		await delay(5000);
+		assert(fse.existsSync(path.join(prjRoot,"build","Release","main")));
 		let a = 5;
 	});
 });

@@ -21,7 +21,7 @@ export class Dot {
             `${dstSvgFile}`,
             `${dotFile}`
         ];
-        return this.exec.execPromise(cmd, args);
+        return this.exec.exec(cmd, args);
         // dot -Tsvg -o graph.svg ./graph.dot
     }
 }
