@@ -43,7 +43,19 @@ export class CodeGenerator {
                                       .replaceAll('#include "A/B/C/interface.hpp"',`#include "${interfaceClassFile}"`)
                                       .replaceAll('INTERFACE_CLASS',interfaceName);
         fse.mkdirpSync(path.dirname(outFile));
-        fse.writeFileSync(outFile,interfaceImpHpp);
+        fse.writeFileSync(outFile + ".hpp",interfaceImpHpp);
 
+        template = fse.readFileSync(this.interfaceImpPathCpp).toString();
+        hash = crypto.createHash('sha1').update(namespace + "::" + className).digest('hex');
+
+        let classHeader = `${namespace.replaceAll("::","/")}/${className}.hpp`;
+
+        let interfaceImpCpp = template.replaceAll("INTERFACE_HEADER","HEADER_" + hash + "_END")
+                                      .replaceAll("A::B::C",namespace)
+                                      .replaceAll("INTERFACE_IMP_CLASS",className)
+                                      .replaceAll('#include "A/B/C/interface.hpp"',`#include "${classHeader}"`)
+                                      .replaceAll('INTERFACE_CLASS',interfaceName);
+        
+        fse.writeFileSync(outFile + ".cpp",interfaceImpCpp);
     }
 }

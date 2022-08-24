@@ -543,11 +543,11 @@ export class CppPrjSup {
             filePath
         );
 
-        let fullImpClassName_ = await this.log.askInput("Enter interface class name","A::B::C::ClassName");
+        let fullImpClassName_ = await this.log.askInput("Enter implementation class name","A::B::C::ClassName");
         let fullImpClassName = fullImpClassName_!;
         let splittedImp = fullImpClassName?.split("::");
         let classImpName = splittedImp[splittedImp?.length-1];
-        let fileImpPath = path.join(this.srcRoot,splittedImp.join(path.sep)) + ".hpp";
+        let fileImpPath = path.join(this.srcRoot,splittedImp.join(path.sep));
         splittedImp.splice(splittedImp?.length-1,1);
         let namespaceImp = splittedImp.join("::");
         splitted.push(className);

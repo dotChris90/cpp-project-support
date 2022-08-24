@@ -6,8 +6,8 @@ namespace A::B::C {
 
 class INTERFACE_CLASS {
  public:
-  virtual ~INTERFACE_CLASS() {};
-  virtual void DoSth() = 0;
+  virtual ~INTERFACE_CLASS() = default;
+  virtual auto doSth() -> void = 0;
 };
 
 }
