@@ -330,7 +330,7 @@
 		"compile": "tsc -p ./",
 		"postcompile": "cp -R src/C++Code out",
 		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile",
+		"pretest": "npm run compile && pip3 install conan",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
