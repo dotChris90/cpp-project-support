@@ -330,7 +330,7 @@
 		"compile": "tsc -p ./",
 		"postcompile": "cp -R src/C++Code out",
 		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
+		"pretest": "npm run compile",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
