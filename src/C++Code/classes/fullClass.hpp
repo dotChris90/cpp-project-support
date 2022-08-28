@@ -17,7 +17,9 @@ class FULL_CLASS {
   auto operator=(const FULL_CLASS &) -> FULL_CLASS & = default;
   auto operator=(FULL_CLASS &&) -> FULL_CLASS & = default;
   // methods 
-  virtual auto doSth() -> void = 0;
+  /// @brief method to do sth
+  /// @return 
+  virtual auto doSth() -> void;
 };
 
 }

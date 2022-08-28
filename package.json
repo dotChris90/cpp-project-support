@@ -36,9 +36,11 @@
 		"onCommand:cps.generateInterface",
 		"onCommand:cps.addIFClick",
 		"onCommand:cps.addFullClass",
+		"onCommand:cps.addStruct",
 		"onCommand:cps.genMethBody",
 		"onCommand:cps.getPkgTarget",
-		"onCommand:cps.getPrjTarget"
+		"onCommand:cps.getPrjTarget",
+		"onCommand:cps.genConanfile"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -181,20 +183,28 @@
 				"title": "CPS - generate full class by selected file"
 			},
 			{
+				"command": "cps.addStruct",
+				"title": "CPS - generate struct by selected file"
+			},
+			{
 				"command": "cps.genMethBody",
 				"title": "CPS - generate method body"
-			},	
-			{	
+			},
+			{
 				"command": "cps.getPkgTarget",
 				"title": "CPS - get package targets"
 			},
 			{
 				"command": "cps.getPrjTarget",
 				"title": "CPS - 4 - get targets of each package in project"
+			},
+			{
+				"command": "cps.genConanfile",
+				"title": "CPS - generate Conanfile.py"
 			}
 		],
 		"menus": {
-			"explorer/context" : [
+			"explorer/context": [
 				{
 					"submenu": "cps.conan",
 					"group": "z_commands",
@@ -209,15 +219,26 @@
 					"submenu": "cps.workspace",
 					"group": "z_commands",
 					"when": "resourceFilename != conanfile.py"
+				},
+				{
+					"submenu": "cps.cps_file",
+					"group": "z_commands",
+					"when": "resourceFilename == cps.yml"
 				}
 			],
-			"editor/context" : [
+			"editor/context": [
 				{
 					"submenu": "cps.editor",
 					"group": "z_commands"
 				}
 			],
-			"cps.generator" : [
+			"cps.cps_file": [
+				{
+					"command": "cps.genConanfile",
+					"group": "z_commands"
+				}
+			],
+			"cps.generator": [
 				{
 					"command": "cps.addIFClick",
 					"group": "z_commands"
@@ -227,7 +248,7 @@
 					"group": "z_commands"
 				}
 			],
-			"cps.workspace" : [
+			"cps.workspace": [
 				{
 					"command": "cps.importTemplate",
 					"group": "navigation"
@@ -237,7 +258,7 @@
 					"group": "navigation"
 				}
 			],
-			"cps.editor" : [
+			"cps.editor": [
 				{
 					"command": "cps.genMethBody",
 					"group": "z_commands"
@@ -249,9 +270,13 @@
 				{
 					"command": "cps.addFullClass",
 					"group": "z_commands"
+				},
+				{
+					"command": "cps.addStruct",
+					"group": "z_commands"
 				}
 			],
-			"cps.conan" : [
+			"cps.conan": [
 				{
 					"command": "cps.newPrj",
 					"group": "navigation"
@@ -312,7 +337,7 @@
 				"label": "CPS"
 			},
 			{
-				"id" : "cps.generator",
+				"id": "cps.generator",
 				"label": "CPS"
 			},
 			{
@@ -320,7 +345,11 @@
 				"label": "CPS"
 			},
 			{
-				"id" : "cps.workspace",
+				"id": "cps.workspace",
+				"label": "CPS"
+			},
+			{
+				"id": "cps.cps_file",
 				"label": "CPS"
 			}
 		]
@@ -354,7 +383,8 @@
 		"@types/fs-extra": "^9.0.13",
 		"command-exists": "^1.2.9",
 		"crypto": "^1.0.1",
-		"fs-extra": "^10.1.0"
+		"fs-extra": "^10.1.0",
+		"yaml": "^2.1.1"
 	},
 	"extensionPack": [
 		"ms-vscode.cpptools-extension-pack",

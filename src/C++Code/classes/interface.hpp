@@ -16,7 +16,8 @@ class INTERFACE_CLASS {
   // assign operator
   auto operator=(const INTERFACE_CLASS &) -> INTERFACE_CLASS & = default;
   auto operator=(INTERFACE_CLASS &&) -> INTERFACE_CLASS & = default;
-  // requires implementation
+  /// @brief method to do sth / must be implemented
+  /// @return nothing
   virtual auto doSth() -> void = 0;
 };
 

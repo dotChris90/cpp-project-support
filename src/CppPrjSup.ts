@@ -2,8 +2,10 @@ import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 import * as commandExists from 'command-exists';
+import * as yaml from 'yaml';
 
 import {Conan} from './Conan';
+import {Conanfile} from './Conanfile';
 import {CMake} from './CMake';
 import {Dot} from './Dot';
 import {IMsgCenter} from './IMsgCenter';
@@ -659,6 +661,35 @@ export class CppPrjSup {
             this.log.showError(`selected item ${file} is directory not file!`);
         }
     }
+
+    public async generateStruct() 
+    {
+        this.log.clear();
+        let file = await this.log.getSelectedTreeItem();
+        if (fse.lstatSync(file).isFile()) {
+            if (file.includes(this.srcRoot)) {
+                let file_rel = file.substring(this.srcRoot.length+1);
+                file_rel = file_rel.substring(0,file_rel.length-4);
+                let fullStructName = file_rel.replaceAll("/","::");
+                let splitted = fullStructName?.split("::");
+                let structName = splitted[splitted?.length-1];
+                let filePath = path.join(this.srcRoot,splitted.join(path.sep)) + ".hpp";
+                splitted.splice(splitted?.length-1,1);
+                let namespace = splitted.join("::");
+                this.codeGen.generateStruct(
+                    namespace,
+                    structName,
+                    filePath
+                );
+            }
+            else {
+            }
+        }
+        else {
+            this.log.showError(`selected item ${file} is directory not file!`);
+        }
+    }
+
     public async getPackageTargets(
     ) {
         let packageName = await this.log.askInput("Package Name",'ms-gsl/4.0.0');
@@ -679,4 +710,57 @@ export class CppPrjSup {
         await this.conan.getProjectTargets(this.prjRoot,prjFolder);
         this.log.showHint("finish targets determination.");
     }
+
+    public async generateConanfile(
+
+    ) {
+        let yml = fse.readFileSync(path.join(this.prjRoot,"cps.yml"),'utf8');
+
+        let cpsFile = yaml.parseDocument(yml);
+        let conanfile = new Conanfile();
+        conanfile.name              = cpsFile.get("name") as string;
+        conanfile.version           = cpsFile.get("version") as string;
+        conanfile.author            = cpsFile.get("author") as string;
+        conanfile.build_system      = cpsFile.get("build-system") as string;
+        conanfile.package_manager   = cpsFile.get("package-manager") as string;
+        
+        if (cpsFile.has("packages")) {
+            let packages = cpsFile.get("packages") as yaml.YAMLSeq;
+            let idx = 0;
+            while(idx != -1) {
+                let package_ = packages.getIn([idx]) as string;
+                if (package_ === undefined) {
+                    idx = -1;
+                }
+                else {
+                    idx++;
+                    // it has options
+                   if (typeof package_ === "object") {
+                        let packageMap = package_ as yaml.YAMLMap;
+                        let package_idx = packageMap.items[0].key as yaml.Scalar;
+                        let packageName = package_idx.value as string;
+                        conanfile.packages.push(packageName);
+                        let optionsYaml = packageMap.get(packageName) as yaml.YAMLMap;
+                        for(var jdx = 0; jdx < optionsYaml.items.length;jdx++) {
+                            let option_jdx = optionsYaml.items[jdx] as yaml.Pair;
+                            conanfile.options.push(`${packageName}::${option_jdx.key}=${option_jdx.value}`); 
+                        }
+                   }    
+                   else {
+                        conanfile.packages.push(package_);
+                   }
+                }
+
+            }  
+        }    
+        let conanfilePath = path.join(this.srcRoot,"conanfile_.py"); 
+        conanfile.generateFile(conanfilePath);    
+    }
+
+    public async generateCMakeFile(
+
+    ) {
+
+    }
+
 }

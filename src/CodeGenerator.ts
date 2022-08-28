@@ -8,6 +8,7 @@ export class CodeGenerator {
     private interfaceImpPathCpp : string;
     private fullClassHpp : string;
     private fullClassCpp : string;
+    private structHpp : string;
     constructor(
         cppCodeDir: string
     ) {
@@ -16,6 +17,7 @@ export class CodeGenerator {
         this.interfaceImpPathCpp    = path.join(cppCodeDir,"classes","interfaceImplementation.cpp");
         this.fullClassCpp           = path.join(cppCodeDir,"classes","fullClass.cpp");
         this.fullClassHpp           = path.join(cppCodeDir,"classes","fullClass.hpp");
+        this.structHpp              = path.join(cppCodeDir,"classes","struct.hpp");
     } 
     
     public generateInterface(
@@ -99,5 +101,19 @@ export class CodeGenerator {
             signatureFull = "auto " + fullName + "::" + methodSig.substring("auto ".length) + " {\n}\n";
         }
         fse.appendFileSync(outfile,signatureFull);
+    }
+
+    public async generateStruct(
+        namespace : string,
+        structName : string,
+        outFile : string
+    ) {
+        let template = fse.readFileSync(this.structHpp).toString();
+        let hash = crypto.createHash('sha1').update(namespace + "::" + structName).digest('hex');
+        let interfaceClass = template.replaceAll("STRUCT_HEADER","HEADER_" + hash + "_END")
+                                     .replaceAll("A::B::C",namespace)
+                                     .replaceAll("STRUCT_",structName);
+        fse.mkdirpSync(path.dirname(outFile));
+        fse.writeFileSync(outFile,interfaceClass);
     }
 }
