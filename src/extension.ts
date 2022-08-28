@@ -46,8 +46,14 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.importTemplate', 	() => { cps.importDefaultTemplate();  });
 	vscode.commands.registerCommand('cps.inspect', 			() => { cps.inspectAllPkgOptions();  });
 	vscode.commands.registerCommand('cps.installCPSTools', 	() => { cps.installToolsIfNotPresent();  });
-	vscode.commands.registerCommand('cps.generateInterface', 	() => { cps.generateInterface();  });
-	
+	vscode.commands.registerCommand('cps.generateInterface',() => { cps.generateInterface();  });
+	vscode.commands.registerCommand('cps.addIFClick', 		() => { cps.generateInterfaceInTreeView();  });
+	vscode.commands.registerCommand('cps.addFullClass',     () => { cps.generateFullClasInTreeView();   });
+	vscode.commands.registerCommand('cps.genMethBody',      () => { cps.generateMethodBody();   });
+	vscode.commands.registerCommand('cps.getPkgTarget',     () => { cps.getPackageTargets();   });
+	vscode.commands.registerCommand('cps.getPrjTarget',     () => { cps.getProjectTargets();   });
+
+
 	// ToDo : better format and add command to package.json
 	//vscode.commands.registerCommand('cps.cppcheckHtml', 	() => { cps.generateCppCheckHtmlReport();  });
 	

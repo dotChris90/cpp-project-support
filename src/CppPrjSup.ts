@@ -465,8 +465,56 @@ export class CppPrjSup {
         if (fse.pathExistsSync(packageDir)) {
             fse.removeSync(packageDir);
         }
-        this.conan.deployTool(packageName,packageVersion,deployDir);   
+        this.conan.deployTool(packageName,packageVersion,deployDir);
+
+
         this.log.showHint(`Package deployed at ${deployDir}`);
+
+        let packageFolders = [
+            "bin",
+            "include",
+            "lib",
+            "res"
+        ];
+
+        let packages = fse.readdirSync(deployDir, { withFileTypes: true })
+                          .filter(dirent => dirent.isDirectory())
+                          .filter(dirent => dirent.name != "all")
+                          .map(dirent => path.join(deployDir,dirent.name));
+
+        for(var idx = 0; idx < packageFolders.length;idx++) {
+            let folder = packageFolders[idx];
+            let folder_full = path.join(deployDir,"all",folder);
+            fse.mkdirpSync(folder_full);
+            for(var jdx = 0; jdx < packages.length;jdx++) {
+                let package_ = packages[jdx];
+                let package_folder = path.join(package_,folder);
+                if (fse.existsSync(package_folder)) {
+                    fse.copySync(package_folder,folder_full);
+                }
+            }
+        }    
+        let a = 5;
+    }
+
+    public async generateMethodBody() {
+        this.log.clear();
+        let selectedTxt = (await this.log.getSelectedEditorText()).replace(/  +/g, ' ').replaceAll(";","");
+        let file = await this.log.getSelectedTreeItem();
+        if (file.includes(this.srcRoot)) {
+            let file_rel = file.substring(this.srcRoot.length+1);
+            file_rel = file_rel.substring(0,file_rel.length-4);
+            let fullClassName = file_rel.replaceAll("/","::");
+            let splitted = fullClassName?.split("::");
+            let className = splitted[splitted?.length-1];
+            splitted.splice(splitted?.length-1,1);
+            let namespace = splitted.join("::");
+            this.codeGen.generateMethodBody(namespace,className,selectedTxt,file.replace(".hpp",".cpp"));
+        }
+        else {
+        }
+
+        let a = 5;
     }
 
     public async createMetrix(
@@ -558,5 +606,77 @@ export class CppPrjSup {
             namespace + "::" + className,
             splitted.join('/') + '.hpp'
         );
+    }
+    public async generateInterfaceInTreeView() {
+        this.log.clear();
+        let file = await this.log.getSelectedTreeItem();
+        if (fse.lstatSync(file).isFile()) {
+            if (file.includes(this.srcRoot)) {
+                let file_rel = file.substring(this.srcRoot.length+1);
+                file_rel = file_rel.substring(0,file_rel.length-4);
+                let fullClassName = file_rel.replaceAll("/","::");
+                let splitted = fullClassName?.split("::");
+                let className = splitted[splitted?.length-1];
+                let filePath = path.join(this.srcRoot,splitted.join(path.sep)) + ".hpp";
+                splitted.splice(splitted?.length-1,1);
+                let namespace = splitted.join("::");
+                this.codeGen.generateInterface(
+                    namespace,
+                    className,
+                    filePath
+                );
+            }
+            else {
+            }
+        }
+        else {
+            this.log.showError(`selected item ${file} is directory not file!`);
+        }
+    }
+    public async generateFullClasInTreeView() {
+        this.log.clear();
+        let file = await this.log.getSelectedTreeItem();
+        if (fse.lstatSync(file).isFile()) {
+            if (file.includes(this.srcRoot)) {
+                let file_rel = file.substring(this.srcRoot.length+1);
+                file_rel = file_rel.substring(0,file_rel.length-4);
+                let fullClassName = file_rel.replaceAll("/","::");
+                let splitted = fullClassName?.split("::");
+                let className = splitted[splitted?.length-1];
+                let filePath = path.join(this.srcRoot,splitted.join(path.sep));
+                splitted.splice(splitted?.length-1,1);
+                let namespace = splitted.join("::");
+                this.codeGen.generateFullClass(
+                    namespace,
+                    className,
+                    filePath
+                );
+            }
+            else {
+            }
+        }
+        else {
+            this.log.showError(`selected item ${file} is directory not file!`);
+        }
+    }
+    public async getPackageTargets(
+    ) {
+        let packageName = await this.log.askInput("Package Name",'ms-gsl/4.0.0');
+        let targetsFile = path.join(this.toolDir,"targets.txt");
+        await this.conan.getPackageTargets(packageName,targetsFile);
+        this.log.showTxt(targetsFile);
+    }
+
+    public async getProjectTargets(
+
+    ) {
+        let prjFolder = path.join(this.toolDir,"project_targets");
+        if (fse.existsSync(prjFolder)) {
+            fse.removeSync(prjFolder);
+        }
+        fse.mkdirpSync(prjFolder);
+        this.log.showHint(`targets of each package will be present at ${prjFolder}`);
+        await this.conan.getProjectTargets(this.prjRoot,prjFolder);
+        this.log.showHint("finish targets determination.");
     }
 }

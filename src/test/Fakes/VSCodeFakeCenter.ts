@@ -32,13 +32,13 @@ export class VSCodeFakeCenter implements IMsgCenter {
     showHint(text: string): void {
         vscode.window.showInformationMessage(text);   
     }
-    async askInput(question: string, placeHolder: string) {
-        return this.mappingInput.get(question);
+    async askInput(question: string, placeHolder: string) : Promise<string> {
+        return this.mappingInput.get(question)!;
     }
     // ToDo :   find out why sometimes return type of showQuickPick is undefined .... 
     //          and so not need for this walk around
-    async pickFromList(question: string, list: string[]): Promise<string | undefined> {
-		return this.mappingPick.get(question);
+    async pickFromList(question: string, list: string[]): Promise<string> {
+		return this.mappingPick.get(question)!;
     }
     showSVG(uri: string): void {
         vscode.commands.executeCommand('_svg.showSvgByUri', vscode.Uri.parse(uri));
@@ -51,5 +51,11 @@ export class VSCodeFakeCenter implements IMsgCenter {
     }
     showError(text: string): void {
         vscode.window.showErrorMessage(text);
+    }
+    async getSelectedTreeItem(): Promise<string> {
+        return "bla"; 
+    }
+    async getSelectedEditorText(): Promise<string> {
+        return "blu";
     }
 }

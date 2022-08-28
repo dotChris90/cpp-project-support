@@ -1,12 +1,13 @@
+from json import tool
+from conans import ConanFile
 from conans import tools
 from conan.tools.cmake import CMakeToolchain, CMake, CMakeDeps
 from conan.tools.layout import cmake_layout
 
+class AbcConan(ConanFile):
 
-class {{package_name}}Conan(ConanFile):
-
-    name = "{{ name }}"
-    version = "{{ version }}"
+    name = "abc"
+    version = "0.0.1"
 
     # Optional metadata
     license = "<Put the package license here>"
@@ -26,10 +27,10 @@ class {{package_name}}Conan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
-    
+
     def requirements(self):
-        self.requires("fmt/8.1.1")
         self.requires("ms-gsl/4.0.0")
+        self.requires("iceoryx/2.0.0")
 
     def layout(self):
         cmake_layout(self)
@@ -51,4 +52,3 @@ class {{package_name}}Conan(ConanFile):
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
-

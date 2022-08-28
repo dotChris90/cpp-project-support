@@ -33,7 +33,12 @@
 		"onCommand:cps.importTemplate",
 		"onCommand:cps.inspect",
 		"onCommand:cps.installCPSTools",
-		"onCommand:cps.generateInterface"
+		"onCommand:cps.generateInterface",
+		"onCommand:cps.addIFClick",
+		"onCommand:cps.addFullClass",
+		"onCommand:cps.genMethBody",
+		"onCommand:cps.getPkgTarget",
+		"onCommand:cps.getPrjTarget"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -109,15 +114,15 @@
 			},
 			{
 				"command": "cps.build",
-				"title": "CPS - 4 - Build project"
+				"title": "CPS - 5 - Build project"
 			},
 			{
 				"command": "cps.packageTree",
-				"title": "CPS - x - Generate Package Tree"
+				"title": "CPS - Generate Package Tree"
 			},
 			{
 				"command": "cps.targetTree",
-				"title": "CPS - x - Generate Target Tree"
+				"title": "CPS - Generate Target Tree"
 			},
 			{
 				"command": "cps.req",
@@ -125,31 +130,31 @@
 			},
 			{
 				"command": "cps.clean",
-				"title": "CPS - 7 - Clean build dir"
+				"title": "CPS - 8 - Clean build dir"
 			},
 			{
 				"command": "cps.importTemplate",
-				"title": "CPS - 0 - Import default template"
+				"title": "CPS - Import default template"
 			},
 			{
 				"command": "cps.doxygen",
-				"title": "CPS - x - Create Doxygen Doc"
+				"title": "CPS - Create Doxygen Doc"
 			},
 			{
 				"command": "cps.cppcheckText",
-				"title": "CPS - x - Check C++ Files and generate txt report"
+				"title": "CPS - Check C++ Files and generate txt report"
 			},
 			{
 				"command": "cps.metrix",
-				"title": "CPS - x - Create Metrix"
+				"title": "CPS - Create Metrix"
 			},
 			{
 				"command": "cps.deploy",
-				"title": "CPS - 6 - Deploy Package"
+				"title": "CPS - 7 - Deploy Package"
 			},
 			{
 				"command": "cps.create",
-				"title": "CPS - 5 - Create Package and Test"
+				"title": "CPS - 6 - Create Package and Test"
 			},
 			{
 				"command": "cps.center.installdefault",
@@ -157,25 +162,96 @@
 			},
 			{
 				"command": "cps.inspect",
-				"title": "CPS - x - inspect project and dependencies"
+				"title": "CPS - inspect project and dependencies"
 			},
 			{
 				"command": "cps.installCPSTools",
-				"title": "CPS - x - import CPS tools"
+				"title": "CPS  - import CPS tools"
 			},
 			{
 				"command": "cps.generateInterface",
-				"title": "CPS - x - generate Interface Class"
+				"title": "CPS - generate Interface Class"
+			},
+			{
+				"command": "cps.addIFClick",
+				"title": "CPS - generate Interface Class by selected file"
+			},
+			{
+				"command": "cps.addFullClass",
+				"title": "CPS - generate full class by selected file"
+			},
+			{
+				"command": "cps.genMethBody",
+				"title": "CPS - generate method body"
+			},	
+			{	
+				"command": "cps.getPkgTarget",
+				"title": "CPS - get package targets"
+			},
+			{
+				"command": "cps.getPrjTarget",
+				"title": "CPS - 4 - get targets of each package in project"
 			}
 		],
 		"menus": {
 			"explorer/context" : [
 				{
-					"submenu": "cps",
+					"submenu": "cps.conan",
+					"group": "z_commands",
+					"when": "resourceFilename == conanfile.py"
+				},
+				{
+					"submenu": "cps.generator",
+					"group": "z_commands",
+					"when": "resourceExtname == .hpp || resourceExtname == .h"
+				},
+				{
+					"submenu": "cps.workspace",
+					"group": "z_commands",
+					"when": "resourceFilename != conanfile.py"
+				}
+			],
+			"editor/context" : [
+				{
+					"submenu": "cps.editor",
 					"group": "z_commands"
 				}
 			],
-			"cps" : [
+			"cps.generator" : [
+				{
+					"command": "cps.addIFClick",
+					"group": "z_commands"
+				},
+				{
+					"command": "cps.addFullClass",
+					"group": "z_commands"
+				}
+			],
+			"cps.workspace" : [
+				{
+					"command": "cps.importTemplate",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.getPkgTarget",
+					"group": "navigation"
+				}
+			],
+			"cps.editor" : [
+				{
+					"command": "cps.genMethBody",
+					"group": "z_commands"
+				},
+				{
+					"command": "cps.addIFClick",
+					"group": "z_commands"
+				},
+				{
+					"command": "cps.addFullClass",
+					"group": "z_commands"
+				}
+			],
+			"cps.conan" : [
 				{
 					"command": "cps.newPrj",
 					"group": "navigation"
@@ -189,20 +265,24 @@
 					"group": "navigation"
 				},
 				{
+					"command": "cps.getPrjTarget",
+					"group": "navigation"
+				},
+				{
 					"command": "cps.build",
 					"group": "navigation"
 				},
 				{
 					"command": "cps.packageTree",
-					"group": "navigation"
+					"group": "z_commands"
 				},
 				{
 					"command": "cps.doxygen",
-					"group": "navigation"
+					"group": "z_commands"
 				},
 				{
 					"command": "cps.metrix",
-					"group": "navigation"
+					"group": "z_commands"
 				},
 				{
 					"command": "cps.clean",
@@ -210,7 +290,7 @@
 				},
 				{
 					"command": "cps.targetTree",
-					"group": "navigation"
+					"group": "z_commands"
 				},
 				{
 					"command": "cps.create",
@@ -218,21 +298,29 @@
 				},
 				{
 					"command": "cps.inspect",
-					"group": "navigation"
+					"group": "z_commands"
 				},
 				{
 					"command": "cps.deploy",
-					"group": "navigation"
-				},
-				{
-					"command": "cps.importTemplate",
 					"group": "navigation"
 				}
 			]
 		},
 		"submenus": [
 			{
-				"id": "cps",
+				"id": "cps.conan",
+				"label": "CPS"
+			},
+			{
+				"id" : "cps.generator",
+				"label": "CPS"
+			},
+			{
+				"id": "cps.editor",
+				"label": "CPS"
+			},
+			{
+				"id" : "cps.workspace",
 				"label": "CPS"
 			}
 		]
@@ -272,7 +360,8 @@
 		"ms-vscode.cpptools-extension-pack",
 		"jock.svg",
 		"ritwickdey.LiveServer",
-		"auchenberg.vscode-browser-preview"
+		"auchenberg.vscode-browser-preview",
+		"amiralizadeh9480.cpp-helper"
 	],
 	"__metadata": {
 		"id": "b97ea265-161f-4151-8c50-8554df04b8fb",

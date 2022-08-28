@@ -297,4 +297,135 @@ export class Conan {
         let anwser = (await this.exec.execWithResult(cmd,args)).join("\n");
         return !(anwser.startsWith("There are no packages matching the"));
     }
+
+    public async getPackageTargets(
+        packageName : string,
+        outFile : string
+    ) {
+        let conanfilePath = path.join(fse.mkdtempSync(path.join(os.tmpdir(), 'targetDetermination-')),"conanfile.py");
+        let randomPkgName = path.basename(path.dirname(conanfilePath));
+
+        let conanfileContent = `from json import tool
+from conans import ConanFile
+from conans import tools
+from conan.tools.cmake import CMakeToolchain, CMake, CMakeDeps
+from conan.tools.layout import cmake_layout
+        
+class AbcConan(ConanFile):
+        
+    name = "BLABLABLA"
+    version = "0.0.1"
+    license = "<Put the package license here>"
+    author = "<Put your name here> <And your email here>"
+    url = "<Package recipe repository url here, for issues about the package>"
+    description = "<Description of Abc here>"
+    topics = ("<Put some tag here>", "<here>", "<and here>")
+    settings = "os", "compiler", "build_type", "arch"
+    options = {"shared": [True, False], "fPIC": [True, False]}
+    default_options = {"shared": False, "fPIC": True}
+    exports_sources = "CMakeLists.txt", "src/*"
+        
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+        
+    def requirements(self):
+        self.requires("BLUBLU")
+        
+    def layout(self):
+        cmake_layout(self)
+        
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.generate()
+        cmake = CMakeDeps(self)
+        cmake.generate()
+        
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure()
+        cmake.build()
+        
+    def package(self):
+        cmake = CMake(self)
+        cmake.install()
+        
+    def package_info(self):
+        self.cpp_info.libs = tools.collect_libs(self)`.replace("BLABLABLA",randomPkgName)
+                                                      .replace("BLUBLU",packageName);
+            fse.writeFileSync(conanfilePath,conanfileContent);
+            let buildDir = path.join(path.dirname(conanfilePath),"build");
+            fse.mkdirpSync(buildDir);
+
+            let cmd = "conan";
+            let args = [
+                "install",
+                "-pr:h=default",
+                "-pr:b=default",
+                ".."
+            ];
+            await this.exec.exec(cmd,args,buildDir);
+            let targetFiles = fse.readdirSync(path.join(buildDir,"generators"))
+                                 .filter(file => file.endsWith("Targets.cmake"));
+            
+            let targets = [];    
+            
+            for(var idx = 0; idx < targetFiles.length;idx++) {
+                
+                let targetFile = targetFiles[idx];
+                targetFile = path.basename(targetFile);
+                targetFile = targetFile.substring(0,targetFile.length-"Targets.cmake".length);
+        
+                let cmakefileContent = `cmake_minimum_required(VERSION 3.15)
+project(abc CXX)
+find_package(BLABLA REQUIRED)`.replace("BLABLA",targetFile);
+
+                let cmakefilePath = path.join(path.dirname(buildDir),"CMakeLists.txt");
+                fse.writeFileSync(cmakefilePath,cmakefileContent);
+                args = [
+                    "build",
+                    ".."
+                ];
+                let results = await this.exec.execWithResult(cmd,args,buildDir);
+                for(var jdx =0; jdx < results.length; jdx++) {
+                    if (results[jdx].startsWith('-- Conan: Target declared ')) {
+                        targets.push(results[jdx].replace('-- Conan: Target declared ','')
+                                                .replaceAll("'",""));
+                    }
+                    else if (results[jdx].startsWith('-- Conan: Component target declared ')) {
+                        targets.push(results[jdx].replace('-- Conan: Component target declared ','')
+                                                .replaceAll("'",""));
+                    }
+                    else {
+                        // pass
+                    }
+                }
+            }
+
+            let targets_txt_content = `targets of package '${packageName}' \n`;
+            let targets_txt_file = outFile;
+
+            for(var idx = 0; idx < targets.length;idx++) {
+                targets_txt_content = targets_txt_content + "- " + targets[idx] + " \n";
+            }
+            
+            fse.writeFileSync(targets_txt_file,targets_txt_content);
+
+            // tidy up --> remove tmp conan package dir
+            fse.removeSync(path.dirname(conanfilePath));
+
+
+    }
+
+    public async getProjectTargets(
+        prjRoot : string,
+        outDir : string
+    ) {
+        let packages = await this.getProjectPackagesRecursive(prjRoot);
+        for (var idx = 0; idx < packages.length;idx++) {
+            let package_idx = packages[idx];
+            let outFile = path.join(outDir,"targets_" + package_idx.replaceAll("/","_").replaceAll(".","_") + ".txt");
+            await this.getPackageTargets(package_idx,outFile);
+        };
+    }
 }
