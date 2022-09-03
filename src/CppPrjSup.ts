@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as commandExists from 'command-exists';
 import * as yaml from 'yaml';
 
+import {CPSYaml} from './CPSYaml';
 import {Conan} from './Conan';
 import {Conanfile} from './Conanfile';
 import {CMake} from './CMake';
@@ -17,6 +18,8 @@ import {Doxygen} from './Doxygen';
 import {CodeGenerator} from './CodeGenerator';
 import { urlToHttpOptions } from 'url';
 import { timeStamp } from 'console';
+import { stringify } from 'querystring';
+import { CMakeLists } from './CMakelists';
 
 export class CppPrjSup {
 
@@ -711,56 +714,157 @@ export class CppPrjSup {
         this.log.showHint("finish targets determination.");
     }
 
+    public async getCMakePackageFromTarget(
+        target : string
+    ) {
+        let targetMap = await this.conan.getProjectTargets(this.prjRoot,"");   
+        let pkgTargetName = "";
+        for(let pkg of targetMap) {
+            let pkgName = pkg[0];
+            let targets = targetMap.get(pkgName)!;
+            if (targets.includes(target)) {
+                pkgTargetName = pkgName;
+                break;
+            }
+        }
+        return pkgTargetName;
+    }
+
     public async generateConanfile(
 
     ) {
-        let yml = fse.readFileSync(path.join(this.prjRoot,"cps.yml"),'utf8');
-
-        let cpsFile = yaml.parseDocument(yml);
+        let cpsFile = CPSYaml.buildFromCPSFile(path.join(this.prjRoot,"cps.yml"));
         let conanfile = new Conanfile();
-        conanfile.name              = cpsFile.get("name") as string;
-        conanfile.version           = cpsFile.get("version") as string;
-        conanfile.author            = cpsFile.get("author") as string;
-        conanfile.build_system      = cpsFile.get("build-system") as string;
-        conanfile.package_manager   = cpsFile.get("package-manager") as string;
+        conanfile.name              = cpsFile.name;
+        conanfile.version           = cpsFile.version;
+        conanfile.author            = cpsFile.author
         
-        if (cpsFile.has("packages")) {
-            let packages = cpsFile.get("packages") as yaml.YAMLSeq;
+        conanfile.packages = cpsFile.getJustPackages();
+
+        let optionNames = cpsFile.getOptionsNames();
+
+        for(var idx = 0; idx < optionNames.length;idx++) {
+            let optionName = optionNames[idx];
+            let optionValues = "[" + cpsFile.getAllOptionsWithoutDefault(optionName).join(",") + "]";
+            let optionDefault = cpsFile.getDefaultOfOption(optionName);
+            conanfile.selfOptions.push(`options["${optionName}"] = ${optionValues}`);
+            conanfile.defaultSelfOption.push(`default_options["${optionName}"] = ${optionDefault}`);
+        }
+
+        for (var idx = 0; idx < conanfile.packages.length;idx++) {
+            let package_ = conanfile.packages[idx];
+            let packageName = package_.split("/")[0];
+            let pkgMap = cpsFile.packages.get(package_)!;
+            let opts = cpsFile.getOptionsOfPackage(package_);
+            for (var jdx = 0; jdx < opts.length;jdx++) {
+                conanfile.options.push(`${packageName}::${opts[jdx]}=${pkgMap.get(opts[jdx]!)}`);
+            } 
+        }
+        
+        let conanfilePath = path.join(this.prjRoot,"conanfile.py");
+        if (fse.existsSync(conanfilePath)) {
+            if (fse.existsSync(conanfilePath + ".copy")) {
+                fse.removeSync(conanfilePath + ".copy");
+            }
+            fse.moveSync(conanfilePath,conanfilePath + ".copy");
+        } 
+        conanfile.generateFile(conanfilePath);    
+    }
+
+    public async addTargetsToCPSYML(
+
+    ) {
+
+        let yml = fse.readFileSync(path.join(this.prjRoot,"cps.yml"),'utf8');
+        let cpsFile = yaml.parseDocument(yml);
+
+        let targets : string[] = [];
+        
+        if (cpsFile.has("executables")) {
+            let executables = cpsFile.get("executables") as yaml.YAMLSeq;
             let idx = 0;
             while(idx != -1) {
-                let package_ = packages.getIn([idx]) as string;
-                if (package_ === undefined) {
+                let executable_idx = executables.getIn([idx]) as yaml.YAMLMap;
+                if (executable_idx === undefined) {
                     idx = -1;
                 }
                 else {
                     idx++;
-                    // it has options
-                   if (typeof package_ === "object") {
-                        let packageMap = package_ as yaml.YAMLMap;
-                        let package_idx = packageMap.items[0].key as yaml.Scalar;
-                        let packageName = package_idx.value as string;
-                        conanfile.packages.push(packageName);
-                        let optionsYaml = packageMap.get(packageName) as yaml.YAMLMap;
-                        for(var jdx = 0; jdx < optionsYaml.items.length;jdx++) {
-                            let option_jdx = optionsYaml.items[jdx] as yaml.Pair;
-                            conanfile.options.push(`${packageName}::${option_jdx.key}=${option_jdx.value}`); 
-                        }
-                   }    
-                   else {
-                        conanfile.packages.push(package_);
-                   }
+                    let exe_name = (executable_idx.items[0].key as yaml.Scalar).value as string;
+                    targets.push(exe_name);
                 }
-
-            }  
-        }    
-        let conanfilePath = path.join(this.srcRoot,"conanfile_.py"); 
-        conanfile.generateFile(conanfilePath);    
+            }
+        }
+        if (cpsFile.has("libraries")) {
+            let libraries = cpsFile.get("libraries") as yaml.YAMLSeq;
+            let idx = 0;
+            while(idx != -1) {
+                let library_idx = libraries.getIn([idx]) as yaml.YAMLMap;
+                if (library_idx === undefined) {
+                    idx = -1;
+                }
+                else {
+                    idx++;
+                    let lib_name = (library_idx.items[0].key as yaml.Scalar).value as string;
+                    targets.push(lib_name);
+                }
+            }
+        }
+        let selectedTarget = await this.log.pickFromList("Select target",targets);
+        let outMap = new Map<string,string[]>();
+        outMap = await this.conan.getProjectTargets(this.prjRoot,"");
+        targets = [];
+        let packages = outMap.keys();
+        for(var package_ of packages) {
+            targets = targets.concat(outMap.get(package_)!);
+        } 
+        let selected_libs = await this.log.pickFromListMulti(`Select libs for ${selectedTarget}`,targets);
+        let a = 5;
     }
 
     public async generateCMakeFile(
 
     ) {
+        let cpsFile = CPSYaml.buildFromCPSFile(path.join(this.prjRoot,"cps.yml"));
+        let cmakelists = new CMakeLists();
+        cmakelists.name              = cpsFile.name;
+        cmakelists.version           = cpsFile.version;
+        
+        for(let exe of cpsFile.executables) {
+            let exeName = exe[0];
+            cmakelists.executables.set(exeName,cpsFile.getSrc(exeName));
+            cmakelists.targetLinkLibraries.set(exeName,cpsFile.getTargetLinks(exeName));
+        }
+        for(let lib of cpsFile.libraries) {
+            let libName = lib[0];
+            cmakelists.libraries.set(libName,cpsFile.getSrc(libName));
+            cmakelists.publicHeaders.set(libName,cpsFile.getInc(libName));
+            cmakelists.targetLinkLibraries.set(libName,cpsFile.getTargetLinks(libName));
+        }        
 
+        let find_pkg = new Set<string>();
+        for(let target of cmakelists.targetLinkLibraries) {
+            let targetName = target[0];
+            let libs = cmakelists.targetLinkLibraries.get(targetName)!;
+            for (let lib of libs) {
+                find_pkg.add(await this.getCMakePackageFromTarget(lib));
+            } 
+        }
+        if (find_pkg.has("")) {
+            find_pkg.delete("");
+        }
+        for(let pkg of find_pkg) {
+            cmakelists.findPackage.push(pkg);
+        }
+
+        let cmakefilePath = path.join(this.prjRoot,"CMakeLists.txt");
+        if (fse.existsSync(cmakefilePath)) {
+            if (fse.existsSync(cmakefilePath + ".copy")) {
+                fse.removeSync(cmakefilePath + ".copy");
+            }
+            fse.moveSync(cmakefilePath,cmakefilePath + ".copy");
+        } 
+        cmakelists.generateFile(cmakefilePath);
     }
 
 }

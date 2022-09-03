@@ -40,7 +40,9 @@
 		"onCommand:cps.genMethBody",
 		"onCommand:cps.getPkgTarget",
 		"onCommand:cps.getPrjTarget",
-		"onCommand:cps.genConanfile"
+		"onCommand:cps.genConanfile",
+		"onCommand:cps.genCMakeLists",
+		"onCommand:cps.addLibs2Target"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -201,6 +203,14 @@
 			{
 				"command": "cps.genConanfile",
 				"title": "CPS - generate Conanfile.py"
+			},
+			{
+				"command": "cps.genCMakeLists",
+				"title": "CPS - generate Cmakelists.txt"
+			},
+			{
+				"command": "cps.addLibs2Target",
+				"title": "CPS - Add Library to Target"
 			}
 		],
 		"menus": {
@@ -218,7 +228,7 @@
 				{
 					"submenu": "cps.workspace",
 					"group": "z_commands",
-					"when": "resourceFilename != conanfile.py"
+					"when": "resourceFilename != conanfile.py && resourceExtname != .hpp && resourceExtname != .h && resourceFilename != cps.yml"
 				},
 				{
 					"submenu": "cps.cps_file",
@@ -236,6 +246,14 @@
 				{
 					"command": "cps.genConanfile",
 					"group": "z_commands"
+				},
+				{
+					"command": "cps.genCMakeLists",
+					"group": "z_commands"
+				},
+				{
+					"command": "cps.addLibs2Target",
+					"group": "navigation"
 				}
 			],
 			"cps.generator": [

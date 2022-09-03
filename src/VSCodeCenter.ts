@@ -60,6 +60,26 @@ export class VSCodeCenter implements IMsgCenter {
         }
         return anwser;
     }
+
+    async pickFromListMulti(question: string, list: string[]): Promise<string[]> {
+        let anwserGiven = false;
+        let anwser : string[] = [];
+        while (anwserGiven == false) {
+            let anwser_ = await vscode.window.showQuickPick(list, {
+                placeHolder: question,
+                canPickMany: true
+            });
+            if (anwser_ === undefined) {
+                // pass 
+            }
+            else {
+                anwserGiven = true;
+                anwser = anwser_!;
+            }
+        }
+        return anwser;
+    }
+
     showSVG(uri: string): void {
         vscode.commands.executeCommand('_svg.showSvgByUri', vscode.Uri.parse(uri));
     }

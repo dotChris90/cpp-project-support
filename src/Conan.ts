@@ -301,11 +301,12 @@ export class Conan {
     public async getPackageTargets(
         packageName : string,
         outFile : string
-    ) {
+    ) : Promise<Map<string,string[]>> {
         let conanfilePath = path.join(fse.mkdtempSync(path.join(os.tmpdir(), 'targetDetermination-')),"conanfile.py");
         let randomPkgName = path.basename(path.dirname(conanfilePath));
 
-        let conanfileContent = `from json import tool
+       let outMap : Map<string,string[]> = new  Map<string,string[]>();
+       let conanfileContent = `from json import tool
 from conans import ConanFile
 from conans import tools
 from conan.tools.cmake import CMakeToolchain, CMake, CMakeDeps
@@ -386,46 +387,63 @@ find_package(BLABLA REQUIRED)`.replace("BLABLA",targetFile);
                     "build",
                     ".."
                 ];
+                let target_jdx = "";
+                let targets_idx : string[] = [];
                 let results = await this.exec.execWithResult(cmd,args,buildDir);
                 for(var jdx =0; jdx < results.length; jdx++) {
                     if (results[jdx].startsWith('-- Conan: Target declared ')) {
-                        targets.push(results[jdx].replace('-- Conan: Target declared ','')
-                                                .replaceAll("'",""));
+                        target_jdx = results[jdx].replace('-- Conan: Target declared ','')
+                                                 .replaceAll("'","");
+                        targets_idx.push(target_jdx);
+                        targets.push(target_jdx);
                     }
                     else if (results[jdx].startsWith('-- Conan: Component target declared ')) {
-                        targets.push(results[jdx].replace('-- Conan: Component target declared ','')
-                                                .replaceAll("'",""));
+                        target_jdx = results[jdx].replace('-- Conan: Component target declared ','')
+                                                 .replaceAll("'","");
+                        targets_idx.push(target_jdx);
+                        targets.push(target_jdx);
                     }
                     else {
                         // pass
                     }
                 }
+                outMap.set(targetFile,targets_idx);
             }
 
             let targets_txt_content = `targets of package '${packageName}' \n`;
-            let targets_txt_file = outFile;
+            if (outFile != "") {
+                let targets_txt_file = outFile;
 
-            for(var idx = 0; idx < targets.length;idx++) {
-                targets_txt_content = targets_txt_content + "- " + targets[idx] + " \n";
+                for(var idx = 0; idx < targets.length;idx++) {
+                    targets_txt_content = targets_txt_content + "- " + targets[idx] + " \n";
+                }
+                
+                fse.writeFileSync(targets_txt_file,targets_txt_content);
             }
-            
-            fse.writeFileSync(targets_txt_file,targets_txt_content);
-
             // tidy up --> remove tmp conan package dir
             fse.removeSync(path.dirname(conanfilePath));
 
-
+            return outMap;
     }
 
     public async getProjectTargets(
         prjRoot : string,
-        outDir : string
-    ) {
+        outDir : string = "",
+    ) : Promise<Map<string,string[]>> {
+        let outMap : Map<string,string[]> = new Map<string,string[]>();
         let packages = await this.getProjectPackagesRecursive(prjRoot);
         for (var idx = 0; idx < packages.length;idx++) {
             let package_idx = packages[idx];
-            let outFile = path.join(outDir,"targets_" + package_idx.replaceAll("/","_").replaceAll(".","_") + ".txt");
-            await this.getPackageTargets(package_idx,outFile);
+            let outMap_ = new Map<string,string[]>();
+            if (outDir != "") {
+                let outFile = path.join(outDir,"targets_" + package_idx.replaceAll("/","_").replaceAll(".","_") + ".txt");
+                outMap_ = await this.getPackageTargets(package_idx,outFile);
+            }
+            else {
+                outMap_ = await this.getPackageTargets(package_idx,"");
+            }
+            outMap = new Map([...Array.from(outMap.entries()), ...Array.from(outMap_.entries())]);
         };
+        return outMap;
     }
 }

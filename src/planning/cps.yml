@@ -7,6 +7,9 @@ author : <Put your name here> <And your email here>
 url : <Package recipe repository url here, for issues about the package>
 description : <Description of Abc here>
 topics : ("<Put some tag here>", "<here>", "<and here>")
+options : 
+  - shared : [True, False!]
+  - option1 : [True!,False] 
 packages : 
   - fmt/8.1.1 : 
       header_only : true
@@ -21,5 +24,7 @@ libraries :
   - Hello : 
       src : 
         - src/Greeter.cpp
+      inc : 
+        - src/Greeter.hpp
       requires : 
         - fmt::fmt 

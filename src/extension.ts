@@ -56,6 +56,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// cps generator
 	vscode.commands.registerCommand('cps.genConanfile',     () => { cps.generateConanfile();   });
+	vscode.commands.registerCommand('cps.genCMakeLists',    () => { cps.generateCMakeFile();   });
+	vscode.commands.registerCommand('cps.addLibs2Target',   () => { cps.addTargetsToCPSYML();   });
+	
 
 
 	// ToDo : better format and add command to package.json

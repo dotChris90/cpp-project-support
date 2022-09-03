@@ -58,4 +58,7 @@ export class VSCodeFakeCenter implements IMsgCenter {
     async getSelectedEditorText(): Promise<string> {
         return "blu";
     }
+    async pickFromListMulti(question: string, list: string[]): Promise<string[]> {
+        return [""];
+    }
 }

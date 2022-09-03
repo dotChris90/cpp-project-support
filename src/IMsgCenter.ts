@@ -6,6 +6,7 @@ export interface IMsgCenter {
     showError(text : string) : void;
     askInput(question : string, placeHolder : string) : Promise<string>;
     pickFromList(question: string, list : string[]) : Promise<string>;
+    pickFromListMulti(question: string, list : string[]) : Promise<string[]>;
     showSVG(uri : string) : void;
     showHtml() : void; 
     showTxt(uri : string) : void; 
