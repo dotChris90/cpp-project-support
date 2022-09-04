@@ -1,7 +1,7 @@
 import * as fse from 'fs-extra';
 import * as yaml from 'yaml';
 import * as path from 'path';
-import { stringify } from 'querystring';
+import * as Utils from './Utils';
 
 export class CPSYaml {
     name : string = "";
@@ -13,10 +13,10 @@ export class CPSYaml {
     url = "";
     description = "";
     topics : string[] = [];
-    options : Map<string,string[]> = new Map<string,string[]>();
+    options : Map<string,Set<string>> = new Map<string,Set<string>>();
     packages : Map<string,Map<string,string>> = new Map<string,Map<string,string>>();
-    executables : Map<string,Map<string,string[]>> = new Map<string,Map<string,string[]>>();
-    libraries : Map<string,Map<string,string[]>> = new Map<string,Map<string,string[]>>();  
+    executables : Map<string,Map<string,Set<string>>> = new Map<string,Map<string,Set<string>>>();
+    libraries : Map<string,Map<string,Set<string>>> = new Map<string,Map<string,Set<string>>>();  
     public static buildFromCPSFile(cpsPath : string) {
         
         let cpsYaml = new CPSYaml();
@@ -43,7 +43,7 @@ export class CPSYaml {
                     let optionValues = optionValuesWithDefault.replaceAll("[","")
                                                               .replaceAll("]","")
                                                               .split(",");
-                    cpsYaml.options.set(optionName,optionValues);
+                    cpsYaml.options.set(optionName,Utils.SetUtils.FromArray(optionValues));
                 }
             }
         }
@@ -89,7 +89,7 @@ export class CPSYaml {
                 }
                 else {
                     idx++;
-                    let exe_map = new Map<string,string[]>();
+                    let exe_map = new Map<string,Set<string>>();
                     let exe_name = ((executable.items[0] as yaml.Pair).key as yaml.Scalar).toString();
                     let sources = (executable.get(exe_name) as yaml.YAMLMap).get("src",false) as yaml.YAMLSeq;
                     let jdx = 0;
@@ -104,7 +104,7 @@ export class CPSYaml {
                             sources_str.push(source.toString());
                         }
                     }
-                    exe_map.set("src",sources_str);
+                    exe_map.set("src",Utils.SetUtils.FromArray(sources_str));
                     if ((executable.get(exe_name) as yaml.YAMLMap).has("requires")) {
                         let requires_str : string[] = [];
                         let requires = (executable.get(exe_name) as yaml.YAMLMap).get("requires",false) as yaml.YAMLSeq;
@@ -119,7 +119,7 @@ export class CPSYaml {
                                 requires_str.push(req.toString());
                             }
                         }
-                        exe_map.set("requires",requires_str);   
+                        exe_map.set("requires",Utils.SetUtils.FromArray(requires_str));   
                     }
                     cpsYaml.executables.set(exe_name,exe_map);
                 }
@@ -135,7 +135,7 @@ export class CPSYaml {
                 }
                 else {
                     idx++;
-                    let lib_map = new Map<string,string[]>();
+                    let lib_map = new Map<string,Set<string>>();
                     let lib_name = ((library.items[0] as yaml.Pair).key as yaml.Scalar).toString();
                     let sources = (library.get(lib_name) as yaml.YAMLMap).get("src",false) as yaml.YAMLSeq;
                     let jdx = 0;
@@ -150,7 +150,7 @@ export class CPSYaml {
                             sources_str.push(source.toString());
                         }
                     }
-                    lib_map.set("src",sources_str);
+                    lib_map.set("src", Utils.SetUtils.FromArray(sources_str));
                     if ((library.get(lib_name) as yaml.YAMLMap).has("requires")) {
                         let requires_str : string[] = [];
                         let requires = (library.get(lib_name) as yaml.YAMLMap).get("requires",false) as yaml.YAMLSeq;
@@ -165,7 +165,7 @@ export class CPSYaml {
                                 requires_str.push(req.toString());
                             }
                         }
-                        lib_map.set("requires",requires_str);   
+                        lib_map.set("requires", Utils.SetUtils.FromArray(requires_str));   
                     }
                     jdx = 0;
                     if ((library.get(lib_name) as yaml.YAMLMap).has("inc")) {
@@ -182,7 +182,7 @@ export class CPSYaml {
                                 inc_str.push(inc.toString());
                             }
                         }
-                        lib_map.set("inc",inc_str);   
+                        lib_map.set("inc",Utils.SetUtils.FromArray(inc_str));   
                     }
                     cpsYaml.libraries.set(lib_name,lib_map);
                 }
@@ -214,9 +214,10 @@ export class CPSYaml {
     ) {
         let defaultOpt = "";
         let allOptions = this.options.get(optionName)!;
-        for (var idx = 0; idx < allOptions.length;idx++) {
-            if (allOptions[idx].includes("!")) {
-                defaultOpt = allOptions[idx].replaceAll("!",""); 
+        for(let option of allOptions) {
+            if (option.includes("!")) {
+                defaultOpt = option;
+                break;
             }
         }
         return defaultOpt;
@@ -226,12 +227,12 @@ export class CPSYaml {
     ) {
         let allOptions2 : string[] = [];
         let allOptions = this.options.get(optionName)!;
-        for (var idx = 0; idx < allOptions.length;idx++) {
-            if (allOptions[idx].includes("!")) {
-                allOptions2.push(allOptions[idx].replaceAll("!","")); 
+        for (let option of allOptions) {
+            if (option.includes("!")) {
+                allOptions2.push(option.replaceAll("!","")); 
             }
             else {
-                allOptions2.push(allOptions[idx]);
+                allOptions2.push(option);
             }
         }
         return allOptions2;
@@ -266,6 +267,63 @@ export class CPSYaml {
             return libs;
     }
 
+    public getTargets(
+
+    ) {
+        let targets = this.getExecutables();
+        return targets.concat(this.getLibraries());
+    }
+
+    public setSrc(
+        target : string,
+        srcs : Set<string>
+    ) {
+        let found = false;
+        for (let key of this.executables) {
+            if (key[0] === target) {
+                this.executables.get(target)?.set("src",srcs);
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            // pass 
+        }
+        else {
+            for (let key of this.libraries) {
+                if (key[0] === target) {
+                    this.libraries.get(target)?.set("src",srcs);
+                    break;
+                }
+            }
+        }
+    }
+
+    public setIncs(
+        target : string,
+        incs : Set<string>
+    ) {
+        let found = false;
+        for (let key of this.executables) {
+            if (key[0] === target) {
+                this.executables.get(target)?.set("inc",incs);
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            // pass 
+        }
+        else {
+            for (let key of this.libraries) {
+                if (key[0] === target) {
+                    this.libraries.get(target)?.set("inc",incs);
+                    break;
+                }
+            }
+        }
+    }
+
     public getSrc(
         target : string
     ) {
@@ -274,8 +332,8 @@ export class CPSYaml {
         for (let key of this.executables) {
             if (key[0] === target) {
                 let srcs2 = this.executables.get(target)?.get("src")!;
-                for (var idx = 0; idx < srcs2.length;idx++) {
-                    srcs.push(srcs2[idx]);
+                for (let src of srcs2) {
+                    srcs.push(src);
                 }
                 found = true;
                 break;
@@ -288,8 +346,8 @@ export class CPSYaml {
             for (let key of this.libraries) {
                 if (key[0] === target) {
                     let srcs2 = this.libraries.get(target)?.get("src")!;
-                    for (var idx = 0; idx < srcs2.length;idx++) {
-                        srcs.push(srcs2[idx]);
+                    for (let src of srcs2) {
+                        srcs.push(src);
                     }
                     break;
                 }
@@ -304,13 +362,37 @@ export class CPSYaml {
         for (let key of this.libraries) {
             if (key[0] === lib) {
                 let incs2 = this.libraries.get(lib)?.get("inc")!;
-                for (var idx = 0; idx < incs2.length;idx++) {
-                    incs.push(incs2[idx]);
+                for (let inc of incs2) {
+                    incs.push(inc);
                     }
                     break;
                 }
         }
         return incs;
+    }
+    public setTargetLinks(
+        target : string, 
+        links : Set<string> 
+    ) {
+        let found = false;
+        for (let key of this.executables) {
+            if (key[0] === target) {
+                this.executables.get(target)?.set("requires",links);
+                found = true;
+                break;
+            }
+        }
+        if (found) {
+            // pass
+        }
+        else {
+            for (let key of this.libraries) {
+                if (key[0] === target) {
+                    this.libraries.get(target)?.set("requires",links);
+                    break;
+                }
+            }
+        }
     }
     public getTargetLinks(
         target : string
@@ -320,8 +402,8 @@ export class CPSYaml {
         for (let key of this.executables) {
             if (key[0] === target) {
                 let tarLinks2 = this.executables.get(target)?.get("requires")!;
-                for (var idx = 0; idx < tarLinks2.length;idx++) {
-                    tarLinks.push(tarLinks2[idx]);
+                for (let tar of tarLinks2) {
+                    tarLinks.push(tar);
                 }
                 found = true;
                 break;
@@ -334,13 +416,115 @@ export class CPSYaml {
             for (let key of this.libraries) {
                 if (key[0] === target) {
                     let tarLinks2 = this.libraries.get(target)?.get("requires")!;
-                    for (var idx = 0; idx < tarLinks2.length;idx++) {
-                        tarLinks.push(tarLinks2[idx]);
+                    for (let tar of tarLinks2) {
+                        tarLinks.push(tar);
                     }
                     break;
                 }
             }
         }
         return tarLinks;
+    }
+    public ToYmlFileContent(
+
+    ) {
+        let lines = "";
+        lines += `name : "${this.name}"\n`;
+        lines += `version : "${this.version}"\n`;
+        lines += `package-manager : "${this.package_manager}"\n`;
+        lines += `build-system : "${this.build_system}"\n`;
+        lines += `license : "${this.license}"\n`;
+        lines += `author : "${this.author}"\n`;
+        lines += `url : "${this.url}"\n`;
+        lines += `description : "${this.description}"\n`;
+        lines += `topics : ( `;
+        for(let idx = 0;idx <  this.topics.length-1;idx++)
+            lines += `"${this.topics[idx]}" ,`;
+        if (this.topics.length > 0)
+            lines += `${this.topics[this.topics.length-1]}" )\n`;
+        else 
+            lines += ")\n";
+        if (Utils.MapUtils.IsEmpty(this.options)) {
+            // pass 
+        }
+        else {
+            let options = Utils.MapUtils.GetKeys(this.options);
+            lines += 'options :\n'
+            for(let option of options) {
+                lines += `  - ${option} : "[`;
+                let values = Utils.SetUtils.ToArray(this.options.get(option)!);
+                for(let idx = 0; idx < values.length-1;idx++) {
+                    lines += `${values[idx]},`
+                }
+                lines += `${values[values.length-1]}]"\n`;
+            }
+        }
+        if (Utils.MapUtils.IsEmpty(this.packages)) {
+            // pass 
+        }
+        else {
+            lines += 'packages :\n';
+            let packages = Utils.MapUtils.GetKeys(this.packages);
+            for(let package_ of packages) {
+                if (Utils.MapUtils.IsEmpty(this.packages.get(package_)!)) {
+                    lines += `  - ${package_}\n`;
+                }
+                else {
+                    let options = this.packages.get(package_)!;
+                    lines += `  - ${package_} :\n`;
+                    let optionNames = Utils.MapUtils.GetKeys(options);
+                    for(let optionName of optionNames) {
+                        let value = options.get(optionName)!;
+                        lines += `      ${optionName} : "${value}"\n`;
+                    }
+                }
+            }
+        }
+        if (Utils.MapUtils.IsEmpty(this.executables)) {
+            // pass 
+        }
+        else {
+            lines += `executables : \n`;
+            let exeNames = Utils.MapUtils.GetKeys(this.executables);
+            for(let exeName of exeNames) {
+                lines += `  - ${exeName} :\n`;
+                let sources = this.executables.get(exeName)?.get("src")!;
+                lines += "      src :\n";
+                for(let source of sources) {
+                    lines += `        - ${source}\n`;
+                }
+                let reqs = this.executables.get(exeName)?.get("requires")!;
+                lines += "      requires :\n";
+                for(let req of reqs) {
+                    lines += `        - ${req}\n`;
+                }
+            }
+        }
+        if (Utils.MapUtils.IsEmpty(this.libraries)) {
+            // pass 
+        }
+        else {
+            lines += `libraries : \n`;
+            let libNames = Utils.MapUtils.GetKeys(this.libraries);
+            for(let libName of libNames) {
+                lines += `  - ${libName} :\n`;
+                let sources = this.libraries.get(libName)?.get("src")!;
+                lines += "      src :\n";
+                for(let source of sources) {
+                    lines += `        - ${source}\n`;
+                }
+                let incs = this.libraries.get(libName)?.get("inc")!;
+                lines += "      inc :\n";
+                for(let inc of incs) {
+                    lines += `        - ${inc}\n`;
+                }
+                let reqs = this.libraries.get(libName)?.get("requires")!;
+                lines += "      requires :\n";
+                for(let req of reqs) {
+                    lines += `        - ${req}\n`;
+                }
+            }
+        }
+        return lines;
     }
  } 

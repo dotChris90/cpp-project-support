@@ -42,7 +42,10 @@
 		"onCommand:cps.getPrjTarget",
 		"onCommand:cps.genConanfile",
 		"onCommand:cps.genCMakeLists",
-		"onCommand:cps.addLibs2Target"
+		"onCommand:cps.addLibs2Target",
+		"onCommand:cps.addIncs2Target",
+		"onCommand:cps.addSrcs2Target",
+		"onCommand:cps.addPkg"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -211,6 +214,18 @@
 			{
 				"command": "cps.addLibs2Target",
 				"title": "CPS - Add Library to Target"
+			},
+			{
+				"command": "cps.addSrcs2Target",
+				"title": "CPS - Add src files to target"
+			},
+			{
+				"command": "cps.addIncs2Target",
+				"title": "CPS - Add header files to lib"
+			},
+			{
+				"command": "cps.addPkg",
+				"title": "CPS - Add Package"
 			}
 		],
 		"menus": {
@@ -253,6 +268,18 @@
 				},
 				{
 					"command": "cps.addLibs2Target",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.addSrcs2Target",
+					"group" : "navigation"
+				},
+				{
+					"command": "cps.addIncs2Target",
+					"group": "navigation"
+				},
+				{
+					"command": "cps.addPkg",
 					"group": "navigation"
 				}
 			],

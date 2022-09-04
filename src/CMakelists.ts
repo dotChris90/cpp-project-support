@@ -77,4 +77,12 @@ export class CMakeLists {
         
         fse.writeFileSync(fileDst,lines);
     }
+
+    public async getLibsNames() {
+        let libs : string[] = [];
+        for(let lib of this.libraries) {
+            libs.push(lib[0]);
+        }
+        return libs;
+    }
 }

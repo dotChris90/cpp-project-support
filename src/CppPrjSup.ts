@@ -3,8 +3,10 @@ import * as os from 'os';
 import * as path from 'path';
 import * as commandExists from 'command-exists';
 import * as yaml from 'yaml';
+import * as glob from 'glob';
 
 import {CPSYaml} from './CPSYaml';
+import * as Utils from './Utils';
 import {Conan} from './Conan';
 import {Conanfile} from './Conanfile';
 import {CMake} from './CMake';
@@ -714,19 +716,28 @@ export class CppPrjSup {
         this.log.showHint("finish targets determination.");
     }
 
-    public async getCMakePackageFromTarget(
+    public async getCMakePkgFromTargetAndConanPkgs(
+        conanPkgs : string[],
         target : string
     ) {
-        let targetMap = await this.conan.getProjectTargets(this.prjRoot,"");   
         let pkgTargetName = "";
-        for(let pkg of targetMap) {
-            let pkgName = pkg[0];
-            let targets = targetMap.get(pkgName)!;
-            if (targets.includes(target)) {
-                pkgTargetName = pkgName;
+        let found = false;
+        
+        for(let pkg of conanPkgs) {
+            let targetMap = await this.conan.getPackageTargets(pkg,"");
+            for(let pkg of targetMap) {
+                let pkgName = pkg[0];
+                let targets = targetMap.get(pkgName)!;
+                if (targets.includes(target)) {
+                    pkgTargetName = pkgName;
+                    break;
+                }
+            }
+            if (found) {
                 break;
             }
         }
+        
         return pkgTargetName;
     }
 
@@ -771,55 +782,131 @@ export class CppPrjSup {
         conanfile.generateFile(conanfilePath);    
     }
 
-    public async addTargetsToCPSYML(
+    public async addPackageToCPSYML(
 
     ) {
 
-        let yml = fse.readFileSync(path.join(this.prjRoot,"cps.yml"),'utf8');
-        let cpsFile = yaml.parseDocument(yml);
+    }
 
-        let targets : string[] = [];
+    public async addSrcFiles(
+
+    ) {
+        let cpsFile = CPSYaml.buildFromCPSFile(path.join(this.prjRoot,"cps.yml"));
+        let targets = cpsFile.getTargets();
+
+        if (targets.length === 0) {
+            this.log.showError("No targets present in cps.yml - please add one");
+            return;
+        }
+
+        let selectedTarget = await this.log.pickFromList("Choose target to add source files",targets); 
+
+        let srcs = Utils.FileSearch.SearchRecursive([
+            "**/**/*.cpp",
+            "**/**/*.cc",
+            "**/**/*.c"
+        ],this.srcRoot);
+
+        Utils.Path.AddFolderEachElement(srcs,path.basename(this.srcRoot));
+
+        let buffer = cpsFile.getSrc(selectedTarget);
+        srcs = Utils.ArrayUtils.Diff(srcs,buffer);
         
-        if (cpsFile.has("executables")) {
-            let executables = cpsFile.get("executables") as yaml.YAMLSeq;
-            let idx = 0;
-            while(idx != -1) {
-                let executable_idx = executables.getIn([idx]) as yaml.YAMLMap;
-                if (executable_idx === undefined) {
-                    idx = -1;
-                }
-                else {
-                    idx++;
-                    let exe_name = (executable_idx.items[0].key as yaml.Scalar).value as string;
-                    targets.push(exe_name);
-                }
-            }
+        let selectedItems = await this.log.pickFromListMulti("Select *.cpp or *.c or *.cc files to add ",srcs);
+
+        for(let element of selectedItems)
+            buffer.push(element);
+        
+        cpsFile.setSrc(selectedTarget, Utils.SetUtils.FromArray(buffer));
+
+        let ymlContent = cpsFile.ToYmlFileContent();
+
+        fse.writeFileSync(path.join(this.prjRoot,"cps.yml"),ymlContent);
+    }  
+
+    public async addIncFiles(
+
+    ) {
+        let cpsFile = CPSYaml.buildFromCPSFile(path.join(this.prjRoot,"cps.yml"));
+        let targets = cpsFile.getLibraries();
+
+        if (targets.length === 0) {
+            this.log.showError("No lib present in cps.yml - please add one");
+            return;
         }
-        if (cpsFile.has("libraries")) {
-            let libraries = cpsFile.get("libraries") as yaml.YAMLSeq;
-            let idx = 0;
-            while(idx != -1) {
-                let library_idx = libraries.getIn([idx]) as yaml.YAMLMap;
-                if (library_idx === undefined) {
-                    idx = -1;
-                }
-                else {
-                    idx++;
-                    let lib_name = (library_idx.items[0].key as yaml.Scalar).value as string;
-                    targets.push(lib_name);
-                }
-            }
-        }
+
+        let selectedTarget = await this.log.pickFromList("Choose lib to add header files",targets); 
+
+        let srcs = Utils.FileSearch.SearchRecursive([
+            "**/**/*.hpp",
+            "**/**/*.h"
+        ],this.srcRoot);
+
+        Utils.Path.AddFolderEachElement(srcs,path.basename(this.srcRoot));
+
+        let buffer = cpsFile.getInc(selectedTarget);
+        srcs = Utils.ArrayUtils.Diff(srcs,buffer);
+        
+        let selectedItems = await this.log.pickFromListMulti("Select *.hpp or *.h files to add ",srcs);
+
+        for(let element of selectedItems)
+            buffer.push(element);
+        
+        cpsFile.setIncs(selectedTarget, Utils.SetUtils.FromArray(buffer));
+        
+        let ymlContent = cpsFile.ToYmlFileContent();
+
+        fse.writeFileSync(path.join(this.prjRoot,"cps.yml"),ymlContent);
+    }
+
+    public async addTargetsToCPSYML(
+
+    ) {
+        let cpsFile = CPSYaml.buildFromCPSFile(path.join(this.prjRoot,"cps.yml"));
+        let targets = cpsFile.getTargets();
+
         let selectedTarget = await this.log.pickFromList("Select target",targets);
+        
         let outMap = new Map<string,string[]>();
-        outMap = await this.conan.getProjectTargets(this.prjRoot,"");
+        let packages = cpsFile.getJustPackages();
         targets = [];
-        let packages = outMap.keys();
-        for(var package_ of packages) {
-            targets = targets.concat(outMap.get(package_)!);
-        } 
+        for(let package_ of packages) {
+            outMap = await this.conan.getPackageTargets(package_,"");
+            targets = targets.concat(Utils.MapUtils.GetValuesFlat(outMap));
+        }
+
+        let buffer = cpsFile.getTargetLinks(selectedTarget);
+        targets = Utils.ArrayUtils.Diff(targets,buffer);
+         
         let selected_libs = await this.log.pickFromListMulti(`Select libs for ${selectedTarget}`,targets);
-        let a = 5;
+        buffer = buffer.concat(selectedTarget);
+
+        cpsFile.setTargetLinks(selectedTarget,Utils.SetUtils.FromArray(selected_libs));
+
+        let ymlContent = cpsFile.ToYmlFileContent();
+
+        fse.writeFileSync(path.join(this.prjRoot,"cps.yml"),ymlContent);
+        
+    }
+
+    public async addConanPackage(
+    
+        ){
+            let cpsFile = CPSYaml.buildFromCPSFile(path.join(this.prjRoot,"cps.yml"));
+            let searchPattern = await this.log.askInput("Enter Conan search pattern to search for package","iceoryx/*");
+            let packages = await this.conan.search(searchPattern);
+            if (packages.length === 0) {
+                this.log.showError("No package found ... try again.");
+                return;
+            }
+            let existPkgs = cpsFile.getJustPackages();
+            packages = Utils.ArrayUtils.Diff(packages,existPkgs);
+            let selectedPkgs = await this.log.pickFromList("Select package to add",packages);
+
+            cpsFile.packages.set(selectedPkgs,new Map<string,string>());
+
+            let ymlContent = cpsFile.ToYmlFileContent();
+            fse.writeFileSync(path.join(this.prjRoot,"cps.yml"),ymlContent);
     }
 
     public async generateCMakeFile(
@@ -847,7 +934,13 @@ export class CppPrjSup {
             let targetName = target[0];
             let libs = cmakelists.targetLinkLibraries.get(targetName)!;
             for (let lib of libs) {
-                find_pkg.add(await this.getCMakePackageFromTarget(lib));
+                
+                if ((await cmakelists.getLibsNames()).includes(lib)) {
+                    // pass
+                }
+                else {
+                    find_pkg.add(await this.getCMakePkgFromTargetAndConanPkgs(cpsFile.getJustPackages(), lib));
+                }
             } 
         }
         if (find_pkg.has("")) {

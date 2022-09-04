@@ -273,6 +273,22 @@ export class Conan {
         let version = version_[0].substring(9);
         return `${version}`;
     }
+    public async search(
+        pattern : string
+    ) {
+        let cmd = "conan";
+        let args = [
+            "search",
+            `${pattern}`,
+            "-r",
+            "all"
+        ];
+        let result = await this.exec.execWithResult(cmd,args);
+        let results2 = [];
+        for(let idx = 3;idx <result.length;idx++)
+            results2.push(result[idx]);
+        return results2;
+    }
     public async getTemplates(
 
     ) {
@@ -446,4 +462,5 @@ find_package(BLABLA REQUIRED)`.replace("BLABLA",targetFile);
         };
         return outMap;
     }
+
 }

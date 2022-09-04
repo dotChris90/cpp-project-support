@@ -58,7 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.registerCommand('cps.genConanfile',     () => { cps.generateConanfile();   });
 	vscode.commands.registerCommand('cps.genCMakeLists',    () => { cps.generateCMakeFile();   });
 	vscode.commands.registerCommand('cps.addLibs2Target',   () => { cps.addTargetsToCPSYML();   });
-	
+	vscode.commands.registerCommand('cps.addSrcs2Target',   () => { cps.addSrcFiles();   });
+	vscode.commands.registerCommand('cps.addIncs2Target',   () => { cps.addIncFiles();   });
+	vscode.commands.registerCommand('cps.addPkg',   		() => { cps.addConanPackage();   });
 
 
 	// ToDo : better format and add command to package.json
