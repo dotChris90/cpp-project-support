@@ -26,6 +26,13 @@ export class SetUtils {
             }
         }
     }
+    public static copy<Type>(set : Set<Type>) {
+        let set2 = new Set<Type>();
+        for(let element of set) {
+            set2.add(element);
+        }
+        return set2;
+    }
 }
 
 export class ArrayUtils {

@@ -6,8 +6,8 @@ import * as Utils from './Utils';
 export class CPSYaml {
     name : string = "";
     version : string = "";
-    package_manager = "";
-    build_system = "";
+    packageManager = "";
+    buildSystem = "";
     license = "";
     author = "";
     url = "";
@@ -191,7 +191,7 @@ export class CPSYaml {
            
         return cpsYaml;
     }
-    public getJustPackages(
+    public getPackages(
 
     ) : string[] {
         let packages : string[] =  [];
@@ -199,6 +199,34 @@ export class CPSYaml {
             packages.push(key[0]);
         }
         return packages;
+    }
+    public addPackage(
+        package_ : string
+    ) {
+        if (!this.packages.has(package_)) {
+            this.packages.set(package_,new Map<string,string>());
+        }
+    }
+    public addOption2Pkg(
+        package_ : string,
+        optionKey : string,
+        optionValue : string
+    ) {
+        if (this.packages.has(package_)) {
+            let option = new Map<string,string>();
+            option.set(optionKey,optionValue);
+            this.packages.set(package_,option);
+        }
+        else {
+
+        }
+    }
+    public rmPackage(
+        package_ : string
+    ) {
+        if (!this.packages.has(package_)) {
+            this.packages.delete(package_);
+        }
     }
     public getOptionsNames(
 
@@ -273,7 +301,23 @@ export class CPSYaml {
         let targets = this.getExecutables();
         return targets.concat(this.getLibraries());
     }
-
+    public getTarget(
+        target : string
+    ) {
+        let found = false;
+        let targetMap = new Map<string,Set<string>>();
+        if (this.executables.has(target)) {
+            let found = true;
+            targetMap = this.executables.get(target)!;
+        }
+        if (!found) {
+            if (this.libraries.has(target)) {
+                found = true;
+                targetMap = this.libraries.get(target)!;
+            }
+        }
+        return targetMap;
+    }
     public setSrc(
         target : string,
         srcs : Set<string>
@@ -323,52 +367,77 @@ export class CPSYaml {
             }
         }
     }
-
-    public getSrc(
+    public getSrcAsCopy(
         target : string
     ) {
-        let srcs : string[] = [];
-        let found = false;
-        for (let key of this.executables) {
-            if (key[0] === target) {
-                let srcs2 = this.executables.get(target)?.get("src")!;
-                for (let src of srcs2) {
-                    srcs.push(src);
-                }
-                found = true;
-                break;
-            }
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("src")) {
+            targetMap.set("src", new Set<string>());
         }
-        if (found) {
-            // pass 
-        }
-        else {
-            for (let key of this.libraries) {
-                if (key[0] === target) {
-                    let srcs2 = this.libraries.get(target)?.get("src")!;
-                    for (let src of srcs2) {
-                        srcs.push(src);
-                    }
-                    break;
-                }
-            }
-        }
-        return srcs;
+        let srcs = Utils.SetUtils.copy(targetMap.get("src")!);
+        return Utils.SetUtils.ToArray(srcs);
     }
-    public getInc(
+    public addSrc2Target(
+        target : string,
+        src : string
+    ) {
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("src")) {
+            targetMap.set("src", new Set<string>());
+        }
+        let srcs = targetMap.get("src")!;
+        srcs.add(src);
+        targetMap.set("src",srcs);
+    }
+    public rmSrcOfTarget(
+        target : string, 
+        src : string
+    ) {
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("src")) {
+            targetMap.set("src", new Set<string>());
+        }
+        let srcs = targetMap.get("src")!;
+        if (srcs.has(src)) {
+            srcs.delete(src);
+        }
+        targetMap.set("src",srcs);
+    }
+    public getIncAsCopy(
         lib : string
     ) {
-        let incs : string[] = [];
-        for (let key of this.libraries) {
-            if (key[0] === lib) {
-                let incs2 = this.libraries.get(lib)?.get("inc")!;
-                for (let inc of incs2) {
-                    incs.push(inc);
-                    }
-                    break;
-                }
+        let targetMap = this.getTarget(lib);
+        if (!targetMap.has("inc")) {
+            targetMap.set("inc", new Set<string>());
         }
-        return incs;
+        let incs = Utils.SetUtils.copy(targetMap.get("inc")!);
+        return Utils.SetUtils.ToArray(incs);
+    }
+    public addInc2Target(
+        target : string,
+        inc : string
+    ) {
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("inc")) {
+            targetMap.set("inc", new Set<string>());
+        }
+        let incs = targetMap.get("inc")!;
+        incs.add(inc);
+        targetMap.set("inc",incs);
+    }
+    public rmIncOfTarget(
+        target : string, 
+        inc : string
+    ) {
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("inc")) {
+            targetMap.set("inc", new Set<string>());
+        }
+        let incs = targetMap.get("inc")!;
+        if (incs.has(inc)) {
+            incs.delete(inc);
+        }
+        targetMap.set("inc",incs);
     }
     public setTargetLinks(
         target : string, 
@@ -393,6 +462,32 @@ export class CPSYaml {
                 }
             }
         }
+    }
+    public addTargetReq(
+        target : string,
+        requirement : string
+    ) {
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("requires")) {
+            targetMap.set("requires", new Set<string>());
+        }
+        let reqs = targetMap.get("requires")!;
+        reqs.add(requirement);
+        targetMap.set("requires",reqs);
+    }
+    public rmTargetReq(
+        target : string,
+        requirement : string
+    ) {
+        let targetMap = this.getTarget(target);
+        if (!targetMap.has("requires")) {
+            targetMap.set("requires", new Set<string>());
+        }
+        let reqs = targetMap.get("requires")!;
+        if (reqs.has(requirement)) {
+            reqs.delete(requirement);
+        }
+        targetMap.set("requires",reqs);
     }
     public getTargetLinks(
         target : string

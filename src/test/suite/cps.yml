@@ -1,0 +1,33 @@
+name : "abc"
+version : "0.1.0"
+package-manager : "conan"
+build-system : "cmake"
+license : ""
+author : "<Put your name here> <And your email here>"
+url : ""
+description : ""
+topics : ( )
+options :
+  - shared : "[True, False!]"
+  - option1 : "[True, False!]"
+  - QWER : "[ False,True!]"
+packages :
+  - fmt/9.1.0
+  - cyclone-dds/0.9.1
+  - openssl/1.1.1p
+executables : 
+  - main :
+      src :
+        - src/main.cpp
+      requires :
+        - Hello
+libraries : 
+  - Hello :
+      src :
+        - src/Greeter.cpp
+      inc :
+        - src/Greeter.hpp
+      requires :
+        - fmt::fmt
+        - cyclone-dds::cyclone-dds
+        - CycloneDDS::ddsc
